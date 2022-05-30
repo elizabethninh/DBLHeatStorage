@@ -79,6 +79,18 @@ k_wood = 0.12       %Thermal Conductivity of Pinewood [W/m k]
 d_wood = 0.054      %Wood border thcikness [m], simplification, in reality 2 mm air pocket within 
 A_wood = 0.3107     %Inner Surface Area wood layer [m], slight simplification
 
+%Kingspan Insulation Properties
+ks_k = 0.022;     % Thermal Conductivity Kingspan insulation layer[W/(m*k)]
+ks_d = 0.04;      % thickness of Kingspan insulation layer [m]
+
+%The following values are lifted from the earlier matlab model and are used to calculate (average) surface area of the Kingspan Insulation.
+hsv_al_width = 0.04017;                                                                % Width of Aluminum Tape reflector section, [m]
+hsv_therma_width_in = (hsv_al_width + (2*(sind(18)*0.010)));                           %'width' of kingspan therma plate on the inside, [m]
+hsv_therma_width_out = (hsv_al_width + (2*(sind(18)*0.010))) + 2*(tand(18)*ks_d);      %'width' of kingspan therma plate on the outside, [m]
+hsv_therma_a_in = pvc_length * hsv_therma_width_in;                                    %Area of kingspan therma plate on inside, [m^2]
+hsv_therma_a_out = pvc_length * (hsv_therma_width_out);                                %Area of kingspan therma plate on outside, [m^2]
+hsv_therma_a_avg = (hsv_therma_a_out + hsv_therma_a_in)/2;                             %Surface area in middle of therma plate, [m^2]
+
 %Convective heat transfer coefficients
 h_air = 10          %CVTH of still air [W/(m^2 K)], PLACEHOLDER
 h_cu = 1700         %CVTH water in copper [W/(m^2 K)]
@@ -114,16 +126,16 @@ while t<t_final
     %Polyurethane connection tube
     R_con_air = ;       %Convective thermal resistance air
     R_con_water = ;     %Convective thermal resistance water
-    R_con_pur = (log(6/4))/;       %Conductive thermal resistance polyurethane
-    R_con_total = R_con_air + R_con_water + R_con_pur;     %Totral thermal resistance connection
+    R_con_pur = (log(r_outer_pur/r_inner_pur))/(2*pi*length_pur*k_pur);       %Conductive thermal resistance polyurethane
+    R_con_total = R_con_air + R_con_water + R_con_pur;                        %Total thermal resistance connection
    
     %Add heat flux polyurethane tubes
     
     %Storage vessel
     R_hsv_air =;        %Convective thermal resistance air
     R_hsv_water = ;     %Convective thermal resistance water
-    R_hsv_pvc = ;       %Conductive thermal resistance PVC
-    R_hsv_kingspan ;    %Conductive thermal resistance insulation Kingspan
+    R_hsv_pvc = (log(r_outer_pvc/r_inner_pvc))/(2*pi*length_pvc*k_pvc);    %Conductive thermal resistance PVC
+    R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
     R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
     
     %Add heat flux Storage vessel
