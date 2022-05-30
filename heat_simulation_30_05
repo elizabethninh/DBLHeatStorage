@@ -100,6 +100,7 @@ hsv_therma_a_avg = (hsv_therma_a_out + hsv_therma_a_in)/2;                      
 pvc_ec_inner_length = pvc_ec_length - pvc_ec_width                                                       %Inner length of PVC Endcap [m]
 hsv_pvc_a_single = (pvc_ec_length - (pvc_ec_inner_length * 2)) * ((r_inner_pvc+r_outer_pvc)/2) * 2 * pi; %Average PVC Surface Area for Heat Storage Vessel section without overlap [m]
 hsv_pvc_a_double = (pvc_ec_inner_length * 2) * ((pvc_ec_inner_length+r_outer_pvc_d)/2) * 2 * pi;         %Average PVC Surface Area for Heat Storage Vessel sections with overlap [m]
+pvc_ec_a = (r_outer_pvc)^2 * pi;                                                                         %Surface area of a single endcap, [m^2]
 
 % Air Insulation Values
 %% The following values, once again lifted from the earlier model, aim at extracting helpfull values for calculation of the resistive properties of air in between the HSV and its insulation.
@@ -108,18 +109,25 @@ hsv_pvc_a_double = (pvc_ec_inner_length * 2) * ((pvc_ec_inner_length+r_outer_pvc
     hsv_air_avg_a1 = hsv_pvc_length * (hsv_al_width - (2*(sind(18)*0.005)));                                                                                                                %Surface area at the average point between pvc and reflector [m^2], (TODO implement avgdist 1)
     hsv_air_avgdist2 = 0.00905;                                                                                                                                                             %Average distance between reflector and kingspan therma plate [m]
     hsv_air_avg_a2 = hsv_pvc_length * (hsv_al_width + (2*(sind(18)*0.005)));                                                                                                                %Surface are at the average point between reflector and kingspan therma [m^2], (TODO implement avgdist 2)
-
-%Convective heat transfer coefficients
+    k_air = 0.5     %Placeholder
+    
+%Aluminum Reflector Tape Properties
+    d_al_t = 0.0001;                            % Thickness of an aluminum reflector segment [m]
+    a_al_t = hsv_al_width * hsv_pvc_length;     % Area of a single heat reflector element. 10 are present in total [m^2]
+    
+% Convective heat transfer coefficients
 h_air = 10          %CVTH of still air [W/(m^2 K)], PLACEHOLDER
 h_water = 0.5       %CVTH of water [W/(m^2 K)], PLACEHOLDER
 h_cu = 1700         %CVTH water in copper [W/(m^2 K)]
 h_pur = 120.76      %CVTH water in polyurethane [W/(m^2 K)]
 h_pvc = 4.21        %CVTH water in PVC [W/(m^2 K)]
 h_al = 0.05         %CVTH aluminium [W/(m^2 K)]
+h_Kingspan = 0.5    %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 
 %Radiative heat transfer coefficients
 h_r_pvc = 0.5       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
 h_r_al = 0.08       %RDTH of aluminium-foil [W/(m^2 K)], PLACEHOLDER (but value is uncertain within a certain range) 
+h_r_Kingspan = 0.5  %RDTH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 
 %Other
 V_system = V_cu+V_pvc;                  %Volume of system   
@@ -157,25 +165,28 @@ while t<t_final
     %Heat flux polyurethane tubes
     hf_pur = (y(i)-T_0)/R_con_total
     
-    %Storage vessel
-    R_hsv_air =;        %Convective thermal resistance air
-    R_hsv_water = ;     %Convective thermal resistance water
-    R_hsv_pvc = (log(r_outer_pvc/r_inner_pvc))/(2*pi*length_pvc*k_pvc);    %Conductive thermal resistance PVC
-    R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
-    R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
+    % Heat Storage Vessel
+    % This Calculation of Resistances in the Heat Storage Vessel relies on the Previous Model. Steps in the process (a-k) are named after the modeled heat loss which can be found in SSA4 - Martijn.
     
+    % Steps a-c describe the heat loss from the water in the HSV to the insulative gap, through the PVC tube.
     R_a = 1 / ((hsv_pvc_a_single + hsv_pvc_a_double) * h_water);                                            % Absorption of Heat from water, by PVC-wall, through convection
     R_b = 1 / (((k_pvc*hsv_pvc_a_single) / pvc_ec_width) + ((k_pvc*hsv_pvc_a_double) /(2* pvc_ec_width));   % Conduction Through PVC (requires more extensive explanation)
     R_c = ((r_outer_pvc * 2 * pi) * length_pvc) * (h_r_pvc * h_pvc);                                        % Convection and Radiation from PVC into still Air
-    R_d = hsv_air_avgdist1 / (hsv_air_k * (hsv_air_avg_a1));                                                % Conduction through still air, (relies largely on estimated values for distances/areas)
-    R_e = hsv_al_a * (hsv_al_h_r * hsv_al_h);                                                               % Absorption of Heat, from air into Aluminium Foil, through Convection and Radiation
-    R_f = hsv_al_d / (hsv_al_k * (hsv_pvc_ro * 2 * pi) * hsv_pvc_length); %Conduction through thin Al-foil
-    R_g = R_e; %Same as R_g, but emission of heat energy from warm Al-foil through convection and radiation. Value unchanged.
-    R_h = hsv_air_avgdist2 / (hsv_air_k * hsv_air_avg_a2 * 10); %Conduction throughstill air
-    R_i = 10*(hsv_therma_a_in) * (hsv_therma_h + hsv_therma_h_r); %Convective and Radiation absorbtion by Kingspan therma panel
-    R_j = hsv_therma_d * (hsv_therma_k * hsv_therma_a_avg *10 ); %Conduction through kingspan therma
-    R_k = 10*(hsv_therma_a_out) * (hsv_therma_h_r + hsv_therma_h); %Convection and Radiation to Outside
-    R_hsv_endcaps = 1 / (2 / (hsv_therma_d / (hsv_therma_k * (hsv_pvc_endcap_a))));
+    
+    % Steps d-h describe heat loss within the insulative air pocket with aluminium tape, between the PVC Tubing and the Kingspan-Therma.
+    R_d = hsv_air_avgdist1 / (k_air * (hsv_air_avg_a1));                                                    % Conduction through still air, (relies largely on estimated values for distances/areas)
+    R_e = hsv_al_a * (h_r_al * h_al);                                                                       % Absorption of Heat, from air into Aluminium Foil, through Convection and Radiation
+    R_f = d_al_t / (k_al * (r_outer_pvc * 2 * pi) * length_pvc);                                            % Conduction through Aluminum Tape
+    R_g = R_e;                                                                                              % Emission of heat energy from warm Aluminium foil, through convection and radiation. Value = R_e.
+    R_h = hsv_air_avgdist2 / (k_air * hsv_air_avg_a2 * 10);                                                 % Conduction through still air
+    
+    % Steps i-k describe final heat losses from the insulative gap to the outside air, through the layer of Kingspan-Therma insulation.
+    R_i = 10*(hsv_therma_a_in) * (h_Kingspan + h_r_Kingspan);                                               % Absorption of Heat by Kingspan-Therma panels, through convection and radiation
+    R_j = ks_d * (ks_k * hsv_therma_a_avg *10 );                                                            % Conduction through Kingspan-Therma insulation
+    R_k = 10*(hsv_therma_a_out) * (h_r_Kingspan + h_Kingspan);                                              % Convection and Radiation to Outside, By Kingspan-Therma Insulation
+    
+    & Heat Loss through end-caps
+    R_hsv_endcaps = 1 / (2 / (ks_d / (ks_k * (pvc_ec_a))));
     
     %Thermal Resistance HSV   
     R_hsv_rad = R_a + R_b + R_c + R_d + R_e + R_f + R_g + R_h + R_i + R_j + R_k; %Add all elements for heat loss process in walls 
@@ -204,3 +215,14 @@ xlim([0, 1200]);
 ylim([280, 350]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
+
+
+
+%%Replaced Values
+% The following values are no longer used, most likely because a more complex code is written for the same process
+%Storage vessel
+    R_hsv_air =;        %Convective thermal resistance air
+    R_hsv_water = ;     %Convective thermal resistance water
+    R_hsv_pvc = (log(r_outer_pvc/r_inner_pvc))/(2*pi*length_pvc*k_pvc);    %Conductive thermal resistance PVC
+    R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
+    R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
