@@ -121,7 +121,8 @@ while t<t_final
     T_al=T_al+(Q_rad_al-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al)/(m_al*c_al)  %Temperature of the aluminium plate [K]
     T_cu=T_cu+(Q_rad_cu-Q_loss_rad_cu-Q_loss_cond_al_cu)/(M_cu*c_cu)              %Temperature of the copper tube
     
-    %Add heat flux copper tube
+    %Heat flux copper tube
+    hf_cu = (y(i)-T_0)/R_hsv_total
     
     %Polyurethane connection tube
     R_con_air = ;       %Convective thermal resistance air
@@ -129,7 +130,8 @@ while t<t_final
     R_con_pur = (log(r_outer_pur/r_inner_pur))/(2*pi*length_pur*k_pur);       %Conductive thermal resistance polyurethane
     R_con_total = R_con_air + R_con_water + R_con_pur;                        %Total thermal resistance connection
    
-    %Add heat flux polyurethane tubes
+    %Heat flux polyurethane tubes
+    hf_pur = (y(i)-T_0)/R_con_total
     
     %Storage vessel
     R_hsv_air =;        %Convective thermal resistance air
@@ -138,7 +140,8 @@ while t<t_final
     R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
     R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
     
-    %Add heat flux Storage vessel
+    %Heat flux Storage vessel
+    hf_hsv = (y(i)-T_0)/R_hsv_total
     
     %Heat transfer system
     Q_tot = ; %all fluxes added to each other   
