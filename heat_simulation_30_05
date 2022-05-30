@@ -27,6 +27,11 @@ length_pvc = 0.125;     %Length PVC tube [m]
 epsilon_pvc = 0.9;      %Emissivity PVC [-]
 rho_pvc = 1330;         %Density PVC [kg/m^3]
 k_pvc = 0.19;           %Thermal conductivity PVC [W/(m K)]
+r_outer_pvc_d = 0.0572; %Outer Radius of double-layered PVC tube (near endcaps) [m]
+
+%PVC Endcaps
+pvc_ec_length = 0.034   %Length of Endcap [m]
+pvc_ec_width = 0.0022   %Thickness of the Endcap walls [m]
 
 %Polyurethane tubing
 r_inner_pur = 0.004;    %Inner radius polyurethane tube [m]
@@ -91,8 +96,14 @@ hsv_therma_a_in = pvc_length * hsv_therma_width_in;                             
 hsv_therma_a_out = pvc_length * (hsv_therma_width_out);                                %Area of kingspan therma plate on outside, [m^2]
 hsv_therma_a_avg = (hsv_therma_a_out + hsv_therma_a_in)/2;                             %Surface area in middle of therma plate, [m^2]
 
+%The Heat Storage Vessel is seperated into two parts: one for the parts with overlap of endcaps and one for the part without 
+pvc_ec_inner_length = pvc_ec_length - pvc_ec_width                                                       %Inner length of PVC Endcap [m]
+hsv_pvc_a_single = (pvc_ec_length - (pvc_ec_inner_length * 2)) * ((r_inner_pvc+r_outer_pvc)/2) * 2 * pi; %Average PVC Surface Area for Heat Storage Vessel section without overlap [m]
+hsv_pvc_a_double = (pvc_ec_inner_length * 2) * ((pvc_ec_inner_length+r_outer_pvc_d)/2) * 2 * pi;         %Average PVC Surface Area for Heat Storage Vessel sections with ooverlap [m]
+
 %Convective heat transfer coefficients
 h_air = 10          %CVTH of still air [W/(m^2 K)], PLACEHOLDER
+h_water = 0.5       %CVTH of water [W/(m^2 K)], PLACEHOLDER
 h_cu = 1700         %CVTH water in copper [W/(m^2 K)]
 h_pur = 120.76      %CVTH water in polyurethane [W/(m^2 K)]
 h_pvc = 4.21        %CVTH water in PVC [W/(m^2 K)]
@@ -140,8 +151,25 @@ while t<t_final
     R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
     R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
     
+    R_a = 1 / ((hsv_pvc_a_single + hsv_pvc_a_double) * h_water);                                                        % Absorption of Heat from water, by PVC-wall, through convection
+    R_b = 1 / (((k_pvc*hsv_pvc_a_single) / hsv_pvc_d_single) + ((k_pvc*hsv_pvc_a_double) / hsv_pvc_d_double)); %Complicated conduction processthrough PVC
+    R_c = ((hsv_pvc_ro * 2 * pi) * hsv_pvc_length) * (hsv_pvc_h_r * hsv_pvc_h); %Emission through convection and radiation from pvc into still air
+    R_d = hsv_air_avgdist1 / (hsv_air_k * (hsv_air_avg_a1)); %Conduction through still air
+    R_e = hsv_al_a * (hsv_al_h_r * hsv_al_h); %Absorption through convection and Radiation into Al-foil
+    R_f = hsv_al_d / (hsv_al_k * (hsv_pvc_ro * 2 * pi) * hsv_pvc_length); %Conduction through thin Al-foil
+    R_g = R_e; %Same as R_g, but emission of heat energy from warm Al-foil through convection and radiation. Value unchanged.
+    R_h = hsv_air_avgdist2 / (hsv_air_k * hsv_air_avg_a2 * 10); %Conduction throughstill air
+    R_i = 10*(hsv_therma_a_in) * (hsv_therma_h + hsv_therma_h_r); %Convective and Radiation absorbtion by Kingspan therma panel
+    R_j = hsv_therma_d * (hsv_therma_k * hsv_therma_a_avg *10 ); %Conduction through kingspan therma
+    R_k = 10*(hsv_therma_a_out) * (hsv_therma_h_r + hsv_therma_h); %Convection and Radiation to Outside
+    R_hsv_endcaps = 1 / (2 / (hsv_therma_d / (hsv_therma_k * (hsv_pvc_endcap_a))));
+    
+    %Thermal Resistance HSV   
+    R_hsv_rad = R_a + R_b + R_c + R_d + R_e + R_f + R_g + R_h + R_i + R_j + R_k; %Add all elements for heat loss process in walls 
+    R_hsv = 1/(1/R_hsv_rad + 1/R_hsv_endcaps);                                   %Add End Cap Resistances
+    
     %Heat flux Storage vessel
-    hf_hsv = (y(i)-T_0)/R_hsv_total
+    hf_hsv = (y(i)-T_0)/R_hsv
     
     %Heat transfer system
     Q_tot = ; %all fluxes added to each other   
