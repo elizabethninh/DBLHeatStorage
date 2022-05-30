@@ -108,6 +108,9 @@ h_cu = 1700         %CVTH water in copper [W/(m^2 K)]
 h_pur = 120.76      %CVTH water in polyurethane [W/(m^2 K)]
 h_pvc = 4.21        %CVTH water in PVC [W/(m^2 K)]
 
+%Radiative heat transfer coefficients
+h_r_pvc = 0.5       %RDTH of pvc, [W/(m^2 K)], PLACEHOLDER
+
 %Other
 V_system = V_cu+V_pvc;                  %Volume of system   
 
@@ -151,9 +154,9 @@ while t<t_final
     R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
     R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
     
-    R_a = 1 / ((hsv_pvc_a_single + hsv_pvc_a_double) * h_water);                                                        % Absorption of Heat from water, by PVC-wall, through convection
-    R_b = 1 / (((k_pvc*hsv_pvc_a_single) / hsv_pvc_d_single) + ((k_pvc*hsv_pvc_a_double) / hsv_pvc_d_double)); %Complicated conduction processthrough PVC
-    R_c = ((hsv_pvc_ro * 2 * pi) * hsv_pvc_length) * (hsv_pvc_h_r * hsv_pvc_h); %Emission through convection and radiation from pvc into still air
+    R_a = 1 / ((hsv_pvc_a_single + hsv_pvc_a_double) * h_water);                                            % Absorption of Heat from water, by PVC-wall, through convection
+    R_b = 1 / (((k_pvc*hsv_pvc_a_single) / pvc_ec_width) + ((k_pvc*hsv_pvc_a_double) /(2* pvc_ec_width));   % Conduction Through PVC (requires more extensive explanation)
+    R_c = ((r_outer_pvc * 2 * pi) * length_pvc) * (h_r_pvc * h_pvc); %Emission through convection and radiation from pvc into still air
     R_d = hsv_air_avgdist1 / (hsv_air_k * (hsv_air_avg_a1)); %Conduction through still air
     R_e = hsv_al_a * (hsv_al_h_r * hsv_al_h); %Absorption through convection and Radiation into Al-foil
     R_f = hsv_al_d / (hsv_al_k * (hsv_pvc_ro * 2 * pi) * hsv_pvc_length); %Conduction through thin Al-foil
