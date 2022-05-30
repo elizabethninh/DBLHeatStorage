@@ -101,6 +101,14 @@ pvc_ec_inner_length = pvc_ec_length - pvc_ec_width                              
 hsv_pvc_a_single = (pvc_ec_length - (pvc_ec_inner_length * 2)) * ((r_inner_pvc+r_outer_pvc)/2) * 2 * pi; %Average PVC Surface Area for Heat Storage Vessel section without overlap [m]
 hsv_pvc_a_double = (pvc_ec_inner_length * 2) * ((pvc_ec_inner_length+r_outer_pvc_d)/2) * 2 * pi;         %Average PVC Surface Area for Heat Storage Vessel sections with ooverlap [m]
 
+% Air Insulation Values
+%% The following values, once again lifted from the earlier model, aim at extracting helpfull values for calculation of the resistive properties of air in between the HSV and its insulation.
+% These values are simplified estimations.
+    hsv_air_avgdist1 = ((0.010+0.00795)/2)*((hsv_pvc_length - (hsv_pvc_inner_endcap_length * 2))/hsv_pvc_length) + ((0.0078+0.00575)/2)*((hsv_pvc_inner_endcap_length * 2)/hsv_pvc_length); %USES PRE CALCULATED VALUES. Average distance of the heat reflector to the outer wall of the PVC body. Accounts for the double layer PVC near the endcap, [m]
+    hsv_air_avg_a1 = hsv_pvc_length * (hsv_al_width - (2*(sind(18)*0.005))); %Surface area at the average point between pvc and reflector, ['m^2'] TODO implement avgdist 1
+    hsv_air_avgdist2 = 0.00905; %Average distance between reflector and kingspan therma plate, [m]
+    hsv_air_avg_a2 = hsv_pvc_length * (hsv_al_width + (2*(sind(18)*0.005)));  %Surface are at the average point between reflector and kingspan therma, [m^2] TODOimplement avgdist 2
+
 %Convective heat transfer coefficients
 h_air = 10          %CVTH of still air [W/(m^2 K)], PLACEHOLDER
 h_water = 0.5       %CVTH of water [W/(m^2 K)], PLACEHOLDER
@@ -156,7 +164,7 @@ while t<t_final
     
     R_a = 1 / ((hsv_pvc_a_single + hsv_pvc_a_double) * h_water);                                            % Absorption of Heat from water, by PVC-wall, through convection
     R_b = 1 / (((k_pvc*hsv_pvc_a_single) / pvc_ec_width) + ((k_pvc*hsv_pvc_a_double) /(2* pvc_ec_width));   % Conduction Through PVC (requires more extensive explanation)
-    R_c = ((r_outer_pvc * 2 * pi) * length_pvc) * (h_r_pvc * h_pvc); %Emission through convection and radiation from pvc into still air
+    R_c = ((r_outer_pvc * 2 * pi) * length_pvc) * (h_r_pvc * h_pvc);                                        % Convection and Radiation from PVC into still Air
     R_d = hsv_air_avgdist1 / (hsv_air_k * (hsv_air_avg_a1)); %Conduction through still air
     R_e = hsv_al_a * (hsv_al_h_r * hsv_al_h); %Absorption through convection and Radiation into Al-foil
     R_f = hsv_al_d / (hsv_al_k * (hsv_pvc_ro * 2 * pi) * hsv_pvc_length); %Conduction through thin Al-foil
