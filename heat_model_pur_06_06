@@ -151,7 +151,7 @@ U_pur = 120.76;      %OHTC water in polyurethane [W/(m^2 K)]
 U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 
 %Other
-V_system = V_cu+V_pvc;                  %Volume of system   
+V_system = V_cu+V_pvc+V_pur;                  %Volume of system   
 
 %% Plotting info
 
