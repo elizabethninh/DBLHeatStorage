@@ -182,8 +182,17 @@ while t<t_final
     Q_cu(i) = Q_conv_cu;
   
     
+    %General Setup, (Adaptation of Heat Loss Stages in HSV)
+    R_a_gs = 1/(a_inner_pur*h_water);                                         %Heat Absorption of Polyurethane
+    R_b_gs = 1/((k_pur*a_inner_pur)/d_pur);                                   %Conduction through polyurethane tube
+    R_c_gs = (r_outer_pur * 2 * pi * length_pur) * (h_r_pur * h_pur);         %Convection and Radiation into Outside air
+    R_gs_total = R_a_gs + R_b_gs + R_c_gs;                        %Total thermal resistance connection
+   
+    %Heat flux polyurethane tubes
+    Q_gs = (T_water-T_0)/R_gs_total;
+
     %Temperature water
-    T_water = T_0+(Q_conv_cu/M_water*c_water);      %Final temperature water [K]
+    T_water = T_0+((Q_conv_cu + Q_gs)/M_water*c_water);      %Final temperature water [K]
     y(i) = T_water;
     
     %Plotting steps code
@@ -201,44 +210,5 @@ ylabel('Temperature [K]');
 
 
 
-%%Replaced Values
-% The following values are currently not being used in the system. Reasons are given per section 
-% Unknown Values are filled in with a 0 to avoid model failure
 
-%Storage vessel, Resistances are now calculated using the steps a-k.
-    R_hsv_air = 0;          %Convective thermal resistance air
-    R_hsv_water = 0;        %Convective thermal resistance water
-    R_hsv_pvc = (log(r_outer_pvc/r_inner_pvc))/(2*pi*length_pvc*k_pvc);    %Conductive thermal resistance PVC
-    R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
-    R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
-    
-%Solar Collector, for the time being, a simplified version is used. Several missing values for which I'm unsure what to fill in.    
-    Q_rad_cu = E*length_cu*(r_outer_cu*2)*epsilon_paint;            %Heat addition radiation on copper tube [W]
-    Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
-    Q_loss_conv_al = h_air*A_al*(T_0-T_final);                      %Heat loss convection aluminium plate [W]
-    
-    Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al-T_cu)/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
-    Q_loss_cond_al = 0;                                                              %Heat loss convection aluminium plate (other direction)
-                                           
-    R_sol_air = 0;                                %Conductive thermal resistance air 
-    R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
-    R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance wood setup
-    
-    Q_loss_rad_cu = sigma*epsilon_paint*A_outer_cu(T_cu^4-T_al^4);    %Heat loss radiation copper tube [W]
-    Q_loss_rad_al = sigma*epsilon_paint*A_al(T_al^4-T_cu^4);          %Heat loss radiation aluminium plate [W]
-    
-    T_al=T_al+(Q_rad_al-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al)/(m_al*c_al);  %Temperature of the aluminium plate [K]
-    T_cu=T_cu+(Q_rad_cu-Q_loss_rad_cu-Q_loss_cond_al_cu)/(M_cu*c_cu);              %Temperature of the copper tube
-    
-    %Heat flux copper tube
-    hf_cu = (y(i)-T_0)/R_hsv_total;
    
-% General Setup.
-% Adaptation of Heat Loss Stages in HSV
-  R_a_gs = 1/(a_inner_pur*h_water);                                         %Heat Absorption of Polyurethane
-  R_b_gs = 1/((k_pur*a_inner_pur)/d_pur);                                   %Conduction through polyurethane tube
-  R_c_gs = (r_outer_pur * 2 * pi * length_pur) * (h_r_pur * h_pur);         %Convection and Radiation into Outside air
-  R_con_total = R_con_air + R_con_water + R_con_pur;                        %Total thermal resistance connection
-   
-    %Heat flux polyurethane tubes
-    hf_pur = (y(i)-T_0)/R_con_total;
