@@ -1,4 +1,6 @@
 clear all, close all, clc
+%% This Version only takes the General Setup (PolyUrethane Tubes) into account. Setup values are coppied from earlier model
+
 %% Setup
 % This section contains the parameters of the setup (start of cycle)
 i=1;                     %Value for plot
@@ -42,6 +44,7 @@ pvc_ec_width = 0.0022;   %Thickness of the Endcap walls [m]
 %Polyurethane tubing
 r_inner_pur = 0.004;    %Inner radius polyurethane tube [m]
 r_outer_pur = 0.006;    %Outer radius polyurathane tube [m]
+d_pur = 0.002;          %Wall Thickness polyurthane tube [m]
 length_pur = 6;         %Length polyurethane tube [m]
 epsilon_pur = 0.9;      %Emissivity polyurethane [-]
 k_pur = 0.13;           %Thermal conducitivity polyurethane [W/(m K)]
@@ -166,7 +169,7 @@ while t<t_final
     R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
     Q_loss_cond_al = (T_al-T_air)/R_al ;                                                              %Heat loss convection aluminium plate (other direction)
                             
-    R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
+    R_sol_air = 0.1;                              %Conductive thermal resistance air, PLACEHOLDER 
     R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance wood setup
     
     Q_loss_rad_cu = sigma * epsilon_paint * A_outer_cu* (T_cu^4-T_air^4);    %Heat loss radiation copper tube [W]
@@ -230,11 +233,12 @@ ylabel('Temperature [K]');
     %Heat flux copper tube
     hf_cu = (y(i)-T_0)/R_hsv_total;
    
-% General Setup, for the time being, a simplified version is used. Several missing values for which I'm unsure what to fill in.    
-    R_con_air = 0;       %Convective thermal resistance air
-    R_con_water = 0;     %Convective thermal resistance water
-    R_con_pur = (log(r_outer_pur/r_inner_pur))/(2*pi*length_pur*k_pur);       %Conductive thermal resistance polyurethane
-    R_con_total = R_con_air + R_con_water + R_con_pur;                        %Total thermal resistance connection
+% General Setup.
+% Adaptation of Heat Loss Stages in HSV
+  R_a_gs = 1/(a_inner_pur*h_water);                                         %Heat Absorption of Polyurethane
+  R_b_gs = 1/((k_pur*a_inner_pur)/d_pur);                                   %Conduction through polyurethane tube
+  R_c_gs = (r_outer_pur * 2 * pi * length_pur) * (h_r_pur * h_pur);         %Convection and Radiation into Outside air
+  R_con_total = R_con_air + R_con_water + R_con_pur;                        %Total thermal resistance connection
    
     %Heat flux polyurethane tubes
     hf_pur = (y(i)-T_0)/R_con_total;
