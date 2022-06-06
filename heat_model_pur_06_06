@@ -132,17 +132,18 @@ pvc_ec_a = (r_outer_pvc)^2 * pi;                                                
     a_al_t = hsv_al_width * length_pvc;         % Area of a single heat reflector element. 10 are present in total [m^2]
     
 % Convective heat transfer coefficients
-h_air = 10;          %CVTH of still air [W/(m^2 K)], PLACEHOLDER
-h_water = 0.5;       %CVTH of water [W/(m^2 K)], PLACEHOLDER
-h_pvc = 0.5;         %CVTH PVC [W/(m^2 K)], PLACHEOLDER
-h_al = 0.05;         %CVTH aluminium [W/(m^2 K)]
-h_Kingspan = 0.5;    %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
+h_air = 10;         %CVTH of still air [W/(m^2 K)], PLACEHOLDER
+h_water = 0.5;      %CVTH of water [W/(m^2 K)], PLACEHOLDER
+h_pvc = 0.5;        %CVTH PVC [W/(m^2 K)], PLACHEOLDER
+h_al = 0.05;        %CVTH aluminium [W/(m^2 K)]
+h_Kingspan = 0.5;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
+h_pur = 0.5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
 
 %Radiative heat transfer coefficients
 h_r_pvc = 0.5;       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
 h_r_al = 0.08;       %RDTH of aluminium-foil [W/(m^2 K)], PLACEHOLDER (but value is uncertain within a certain range) 
 h_r_Kingspan = 0.5;  %RDTH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
-
+h_r_pur = 0.5;       %RDTH of Polyurethane [W/(m^2 K)], PLACEHOLDER
 
 %Overall Heat Transfer Coefficients, (may change due to change in CVTH)
 U_cu = 1700;         %OHTC water in copper [W/(m^2 K)]
@@ -183,10 +184,10 @@ while t<t_final
   
     
     %General Setup, (Adaptation of Heat Loss Stages in HSV)
-    R_a_gs = 1/(a_inner_pur*h_water);                                         %Heat Absorption of Polyurethane
-    R_b_gs = 1/((k_pur*a_inner_pur)/d_pur);                                   %Conduction through polyurethane tube
+    R_a_gs = 1/(A_inner_pur*h_water);                                         %Heat Absorption of Polyurethane
+    R_b_gs = 1/((k_pur*A_inner_pur)/d_pur);                                   %Conduction through polyurethane tube
     R_c_gs = (r_outer_pur * 2 * pi * length_pur) * (h_r_pur * h_pur);         %Convection and Radiation into Outside air
-    R_gs_total = R_a_gs + R_b_gs + R_c_gs;                        %Total thermal resistance connection
+    R_gs_total = R_a_gs + R_b_gs + R_c_gs;                                    %Total thermal resistance connection
    
     %Heat flux polyurethane tubes
     Q_gs = (T_water-T_0)/R_gs_total;
