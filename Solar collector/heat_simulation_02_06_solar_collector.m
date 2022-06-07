@@ -27,17 +27,16 @@ c_cu = 386;             %Specific heat copper [J/kg K]
 k_cu = 400;             %Thermal conductivity copper [W/(m K)]
 
 %PVC tubing
-r_inner_pvc = 0.0528;   %Inner radius PVC tube [m]
+hsv_pvc_d = 0.0022;         %Thickness of the HSV PCV [m]
 r_outer_pvc = 0.055;    %Outer radius PVC tube [m]
-length_pvc = 0.130;     %Length PVC tube [m] (this was shown to be slightly longer during first building phase with no real means to cut it down to 0.125m)
+r_inner_pvc = r_outer_pvc - hsv_pvc_d ;   %Inner radius PVC tube [m]
+r_outer_double_pvc = r_outer_pvc + hsv_pvc_d; %Outer Radius of double-layered PVC tube (near endcaps) [m]
+length_pvc = 0.130;     %Length/Height PVC tube [m] (this was shown to be slightly longer during first building phase with no real means to cut it down to 0.125m)
+length_cap_pvc = 0.034; %Length/Height of a PVC Endcap [m]
 epsilon_pvc = 0.9;      %Emissivity PVC [-]
 rho_pvc = 1330;         %Density PVC [kg/m^3]
 k_pvc = 0.19;           %Thermal conductivity PVC [W/(m K)]
-r_outer_pvc_d = 0.0572; %Outer Radius of double-layered PVC tube (near endcaps) [m]
 
-%PVC Endcaps
-pvc_ec_length = 0.034;   %Length of Endcap [m]
-pvc_ec_width = 0.0022;   %Thickness of the Endcap walls [m]
 
 %Polyurethane tubing
 r_inner_pur = 0.004;    %Inner radius polyurethane tube [m]
@@ -113,7 +112,7 @@ hsv_therma_a_out = length_pvc * (hsv_therma_width_out);                         
 hsv_therma_a_avg = (hsv_therma_a_out + hsv_therma_a_in)/2;                             %Surface area in middle of therma plate, [m^2]
 
 %The Heat Storage Vessel is seperated into two parts: one for the parts with overlap of endcaps and one for the part without 
-pvc_ec_inner_length = pvc_ec_length - pvc_ec_width;                                                       %Inner length of PVC Endcap [m]
+pvc_ec_inner_length = length_cap_pvc - pvc_hsv_d;                                                       %Inner length of PVC Endcap [m]
 hsv_pvc_a_single = (pvc_ec_length - (pvc_ec_inner_length * 2)) * ((r_inner_pvc+r_outer_pvc)/2) * 2 * pi; %Average PVC Surface Area for Heat Storage Vessel section without overlap [m]
 hsv_pvc_a_double = (pvc_ec_inner_length * 2) * ((pvc_ec_inner_length+r_outer_pvc_d)/2) * 2 * pi;         %Average PVC Surface Area for Heat Storage Vessel sections with overlap [m]
 pvc_ec_a = (r_outer_pvc)^2 * pi;                                                                         %Surface area of a single endcap, [m^2]
@@ -200,7 +199,7 @@ ylabel('Temperature [K]');
 
 
 
-%%Replaced Values
+%% Deprecated Values
 % The following values are currently not being used in the system. Reasons are given per section 
 % Unknown Values are filled in with a 0 to avoid model failure
 
