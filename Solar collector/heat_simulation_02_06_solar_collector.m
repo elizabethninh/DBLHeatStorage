@@ -29,7 +29,7 @@ k_cu = 400;             %Thermal conductivity copper [W/(m K)]
 %PVC tubing
 r_inner_pvc = 0.0528;   %Inner radius PVC tube [m]
 r_outer_pvc = 0.055;    %Outer radius PVC tube [m]
-length_pvc = 0.125;     %Length PVC tube [m]
+length_pvc = 0.130;     %Length PVC tube [m] (this was shown to be slightly longer during first building phase with no real means to cut it down to 0.125m)
 epsilon_pvc = 0.9;      %Emissivity PVC [-]
 rho_pvc = 1330;         %Density PVC [kg/m^3]
 k_pvc = 0.19;           %Thermal conductivity PVC [W/(m K)]
@@ -42,7 +42,7 @@ pvc_ec_width = 0.0022;   %Thickness of the Endcap walls [m]
 %Polyurethane tubing
 r_inner_pur = 0.004;    %Inner radius polyurethane tube [m]
 r_outer_pur = 0.006;    %Outer radius polyurathane tube [m]
-length_pur = 6;         %Length polyurethane tube [m]
+length_pur = 6.0;       %Length polyurethane tube [m]
 epsilon_pur = 0.9;      %Emissivity polyurethane [-]
 k_pur = 0.13;           %Thermal conducitivity polyurethane [W/(m K)]
 
@@ -70,6 +70,8 @@ A_wood = 0.3107;     %Inner Surface Area wood layer [m], slight simplification
 %Kingspan Insulation Properties
 ks_k = 0.022;     % Thermal Conductivity Kingspan insulation layer[W/(m*k)]
 ks_d = 0.04;      % thickness of Kingspan insulation layer [m]
+ks_spacer_d = 0.01; % Thickness of a single Kingspan spacer layer [m]
+
 
 %Other
 sigma = 5.67*10^-8;     %Stefan Boltzmann constant [W/(m^2 K^4)]
@@ -83,20 +85,20 @@ A_outer_cu = 2 * pi * r_outer_cu * length_cu;       %Outer surface area copper t
 A_inner_cu = 2 * pi * r_inner_cu * length_cu;       %Inner surface area copper tube [m^2]
 A_exposed_cu = A_outer_cu/2;
 
-V_cu = pi * r_inner_cu^2 * length_cu;               %Inner volume copper tube [m^3]
+V_cu = pi * r_inner_cu^2 * length_cu;               %Inner liquid volume copper tube [m^3]
 M_cu = V_cu * rho_cu;
 
 %Surface areas and volume PVC tube
 A_outer_pvc = 2 * pi * r_outer_pvc * length_pvc;    %Outer area PVC tube [m^2]
 A_inner_pvc = 2 * pi * r_inner_pvc * length_pvc;    %Inner area PVC tube [m^2]
 
-V_pvc = pi * r_inner_pvc^2 * length_pvc;            %Inner volume PVC tube [m^3]
+V_pvc = pi * r_inner_pvc^2 * length_pvc;            %Inner liquid volume PVC tube storage vessel [m^3]
 
 %Surface areas and volume Polyurethane Tubing
 A_outer_pur = 2 * pi * r_outer_pur * length_pur;    %Outer area Polyurethane Tubing [m^2]
 A_inner_pur = 2 * pi * r_inner_pur * length_pur;    %Inner area Polyurethane Tubing [m^2]
 
-V_pur = pi * r_inner_pur^2 * length_pur;            %Inner volume Polyurethane Tubing [m^3]
+V_pur = pi * r_inner_pur^2 * length_pur;            %Inner liquid volume Polyurethane Tubing [m^3]
 
 %Aluminium plate
 V_al = A_al*0.002;                                  %Volume aluminium plate [m^3]
@@ -147,7 +149,7 @@ U_pur = 120.76;      %OHTC water in polyurethane [W/(m^2 K)]
 U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 
 %Other
-V_system = V_cu+V_pvc;                  %Volume of system   
+V_system = V_cu+V_pvc+V_pur;                  %Volume of system   
 
 %% Plotting info
 
