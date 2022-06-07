@@ -117,7 +117,7 @@ hsv_pvc_a_single = (pvc_ec_length - (pvc_ec_inner_length * 2)) * ((r_inner_pvc+r
 hsv_pvc_a_double = (pvc_ec_inner_length * 2) * ((pvc_ec_inner_length+r_outer_pvc_d)/2) * 2 * pi;         %Average PVC Surface Area for Heat Storage Vessel sections with overlap [m]
 pvc_ec_a = (r_outer_pvc)^2 * pi;                                                                         %Surface area of a single endcap, [m^2]
 
-% Air Insulation Values
+% Air Insulation Distance and Area Values
 % The following values, once again lifted from the earlier model, aim at extracting helpfull values for calculation of the resistive properties of air in between the HSV and its insulation.
 % These values are simplified estimations.
     hsv_air_avgdist1 = ((0.010+0.00795)/2)*((length_pvc - (pvc_ec_inner_length * 2))/length_pvc) + ((0.0078+0.00575)/2)*((pvc_ec_inner_length * 2)/length_pvc); %Average distance of the heat reflector to the outer wall of the PVC body [m], USES PRE CALCULATED VALUES.  Accounts for the double layer PVC near the endcap, [m]
@@ -145,7 +145,7 @@ h_r_Kingspan = 0.5;  %RDTH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDE
 %Overall Heat Transfer Coefficients, (may change due to change in CVTH)
 U_cu = 1700;         %OHTC water in copper [W/(m^2 K)]
 U_pur = 120.76;      %OHTC water in polyurethane [W/(m^2 K)]
-U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
+U_pvc = 4.21;        %OHTC water in PVC [W/(m^2 K)]
 
 %Other
 V_system = V_cu+V_pvc+V_pur;                  %Volume of system   
@@ -207,7 +207,7 @@ ylabel('Temperature [K]');
     R_hsv_air = 0;          %Convective thermal resistance air
     R_hsv_water = 0;        %Convective thermal resistance water
     R_hsv_pvc = (log(r_outer_pvc/r_inner_pvc))/(2*pi*length_pvc*k_pvc);    %Conductive thermal resistance PVC
-    R_hsv_kingspan ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
+    R_hsv_kingspan = ks_d/(ks_k * hsv_therma_a_avg);                         %Conductive thermal resistance insulation Kingspan
     R_hsv_total = R_hsv_air + R_hsv_water + R_hsv_pvc + R_hsv_kingspan; 
     
 %Solar Collector, for the time being, a simplified version is used. Several missing values for which I'm unsure what to fill in.    
