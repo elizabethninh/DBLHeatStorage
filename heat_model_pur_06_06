@@ -1,5 +1,5 @@
 clear all, close all, clc
-%% This Version only takes the General Setup (PolyUrethane Tubes) into account. Setup values are coppied from earlier model
+%% This Version only takes the General Setup (PolyUrethane Tubes) and the Solar Collector (SSA8 version) into account. Setup values are coppied from earlier model
 
 %% Setup
 % This section contains the parameters of the setup (start of cycle)
