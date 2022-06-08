@@ -29,7 +29,7 @@ c_cu = 386;             %Specific heat copper [J/kg K]
 k_cu = 400;             %Thermal conductivity copper [W/(m K)]
 
 %PVC tubing
-hsv_pvc_d = 0.0022;         %Thickness of the HSV PCV [m]
+hsv_pvc_d = 0.0022;     %Thickness of the HSV PCV [m]
 r_outer_pvc = 0.055;    %Outer radius PVC tube [m]
 r_inner_pvc = r_outer_pvc - hsv_pvc_d ;   %Inner radius PVC tube [m]
 r_outer_double_pvc = r_outer_pvc + hsv_pvc_d; %Outer Radius of double-layered PVC tube (near endcaps) [m]
@@ -55,7 +55,7 @@ d_al = 0.002;           %Width aluminium plate [m]
 k_al = 237;             %Thermal conductivity aluminium [W/(m K)]
 c_al = 900;             %Specific heat aluminium [J/kg K]
 %Water
-rho_water_20C = 998;        %Density water at 20C [kg/m^3]
+rho_water_20C = 998;    %Density water at 20C [kg/m^3]
 c_water = 4148;         %Specific heat water [J/kg K]
 
 %Air
@@ -150,7 +150,26 @@ U_pur = 120.76;      %OHTC water in polyurethane [W/(m^2 K)]
 U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 
 %Other
-V_system = V_cu+V_pvc+V_pur;                  %Volume of system   
+V_system = V_cu+V_pvc+V_pur;                  %Volume of system  
+
+
+
+%Geometry-based Therma Resistance
+    %Radial
+    R_a_cd = (log(r_outer_pvc / r_inner_pvc))/(2*pi * length_pvc * k_pvc); %Conductive transfer through pvc
+    R_a_cv = 1/(h_pvc* (hsv_pvc_a_single+hsv_pvc_a_double)); %Convection into air from pvc
+    R_b_cd = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1));  %Conduction through first still air pocket. simplified, assuming no convection.
+    R_c_r = (10*a_al_t) * (h_r_al * h_al); %Radiation transfer into aluminum reflector CHECK THIS
+    R_d_cd = 0.2; %placeholder. remember to account for the 10 panels
+    R_d_cv = 1/((10*a_al_t) * h_al); %Convection from Aluminum plate into second air pocket
+    R_d_r = R_c_r; %Radiation into second air pocket
+    
+    
+    
+    
+    %Endcap
+    
+    
 
 %% Plotting info
 
