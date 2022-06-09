@@ -47,11 +47,11 @@ length_pur = 6;         %Length polyurethane tube [m]
 epsilon_pur = 0.9;      %Emissivity polyurethane [-]
 k_pur = 0.13;           %Thermal conducitivity polyurethane [W/(m K)]
 
-%Aluminium plate
+%Aluminium plate (tape)
 A_al = 1.085;           %Area aluminium plate [m^2]
 epsilon_paint = 0.95;   %Emissivity black acrylic paint [-]
 rho_al = 2700;          %Density aluminium [kg/m^3]
-d_al = 0.002;           %Width aluminium plate [m]
+d_al = 0.002;           %thickness aluminium plate [m]
 k_al = 237;             %Thermal conductivity aluminium [W/(m K)]
 c_al = 900;             %Specific heat aluminium [J/kg K]
 %Water
@@ -155,21 +155,36 @@ V_system = V_cu+V_pvc+V_pur;                  %Volume of system
 
 
 %Geometry-based Therma Resistance
+%check for reciprocal correctness
     %Radial
     R_a_cd = (log(r_outer_pvc / r_inner_pvc))/(2*pi * length_pvc * k_pvc); %Conductive transfer through pvc
     R_a_cv = 1/(h_pvc* (hsv_pvc_a_single+hsv_pvc_a_double)); %Convection into air from pvc
     R_b_cd = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1));  %Conduction through first still air pocket. simplified, assuming no convection.
     R_c_r = (10*a_al_t) * (h_r_al * h_al); %Radiation transfer into aluminum reflector CHECK THIS
-    R_d_cd = 0.2; %placeholder. remember to account for the 10 panels
+    
+    R_d_cd = d_al_t / (k_al * (10 * a_al_t) * length_pvc); %placeholder. Conduction through aluminum reflector. remember to account for the 10 panels
     R_d_cv = 1/((10*a_al_t) * h_al); %Convection from Aluminum plate into second air pocket
     R_d_r = R_c_r; %Radiation into second air pocket
     
+    R_e_cd = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2)); %Conduction through second still air pocket
+    R_e_cv = (10*hsv_therma_a_in) * (h_Kingspan + h_r_Kingspan);  %Convection into kingspan
     
+    R_f_cd = ks_d * (ks_k * hsv_therma_a_avg * 10);  %Conduction through kingspan
+    R_f_cv = (10*hsv_therma_a_out) * (h_r_Kingspan + h_Kingspan);  %Convection to outside
     
     
     %Endcap
+    R_hsv_endcaps_1 = 0; %Conduction through endcap pvc material
+    R_hsv_endcaps_2 = 0; %Convection into air pocket
+    R_hsv_endcaps_3 = 0; %Conduction through air
+    R_hsv_endcaps_4 = 0; %Convection into Kingspan therma
+    R_hsv_endcaps_5 = 1 / (2 / (ks_d / (ks_k * (pvc_ec_a)))); %Conduction through kingspan therma
+    R_hsv_endcaps_6 = 0; %Convection to outside
     
-    
+    %Total
+    R_hsv_radial = R_a_cd + R_a_cv + R_b_cd + R_c_r + R_d_cd + R_d_cv + R_d_r + R_e_cd + R_e_cv + R_f_cd + R_f_cv;
+    R_hsv_endcaps =  R_hsv_endcaps_1 + R_hsv_endcaps_2 + R_hsv_endcaps_3 + R_hsv_endcaps_4 + R_hsv_endcaps_5 + R_hsv_endcaps_6;
+    R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
 
 %% Plotting info
 
@@ -209,7 +224,10 @@ while t<t_final
    
     %Heat flux polyurethane tubes
     Q_gs = (T_water-T_0)/R_gs_total;
-
+    
+    %Heat flux HSV
+        %if Q from other parts is known, t1 and t2 could be determined? (?  )
+    
     %Temperature water
     T_water = T_0+((Q_conv_cu + Q_gs)/M_water*c_water);      %Final temperature water [K]
     y(i) = T_water;
