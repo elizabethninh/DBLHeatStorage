@@ -128,7 +128,6 @@ pvc_ec_a = (r_outer_pvc)^2 * pi;                                                
 %Aluminum Reflector Tape Properties
     d_al_t = 0.0001;                            % Thickness of an aluminum reflector segment [m]
     a_al_t = hsv_al_width * length_pvc;         % Area of a single heat reflector element. 10 are present in total [m^2]
-    
 % Convective heat transfer coefficients
 h_air = 10;         %CVTH of still air [W/(m^2 K)], PLACEHOLDER
 h_water = 0.5;      %CVTH of water [W/(m^2 K)], PLACEHOLDER
@@ -136,13 +135,11 @@ h_pvc = 0.5;        %CVTH PVC [W/(m^2 K)], PLACHEOLDER
 h_al = 0.05;        %CVTH aluminium [W/(m^2 K)]
 h_kingspan = 0.5;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 h_pur = 0.5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
-
 %Radiative heat transfer coefficients
 h_r_pvc = 0.5;       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
 h_r_al = 0.08;       %RDTH of aluminium-foil [W/(m^2 K)], PLACEHOLDER (but value is uncertain within a certain range) 
 h_r_Kingspan = 0.5;  %RDTH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 h_r_pur = 0.5;       %RDTH of Polyurethane [W/(m^2 K)], PLACEHOLDER
-
 %Overall Heat Transfer Coefficients, (may change due to change in CVTH)
 U_cu = 1700;         %OHTC water in copper [W/(m^2 K)]
 U_pur = 120.76;      %OHTC water in polyurethane [W/(m^2 K)]
@@ -173,12 +170,8 @@ V_system = V_cu+V_pvc+V_pur;                  %Volume of system
     R_y = d_air_endcap/(k_air * pvc_ec_a);                                  %Conduction through air gap
     R_x = 1/((1/(h_kingspan*pvc_ec_a)) + (ks_d/(ks_k*pvc_ec_a)));           %Convection from Kingspan Therma into outside atmosphere, and conduction through Kingspan Therma
     R_hsv_endcaps = 1/((R_z + R_y + R_x) + (R_z + R_y + R_x));              %Total Equivalent Thermal resistance of both endcaps
- 
     R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
-
-
 %% Plotting info
-
 while t<t_final
     %Water
     rho_water = (999.83953 + 16.945176 * (1.00024*T_water) - 7.9870401*10^-3 * (1.00024*T_water)^3 - 46.17046*10^-6* (1.00024*T_water)^3 +105.56302*10^-9 * (1.00024*T_water)^4 - 280.54253*10^-12 * (1.00024*T_water)^5)/(1+16.897850*10^-3 * (1.00024*T_water));   %Density water
@@ -196,9 +189,7 @@ while t<t_final
     R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
     Q_loss_cond_al = (T_al-T_air)/R_al ;                                                              %Heat loss convection aluminium plate (other direction)
     Q_losscond_al(i) = Q_loss_cond_al;                        
-    
-
-    
+ 
     R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
     R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance wood setup
     
@@ -214,21 +205,17 @@ while t<t_final
     
     Q_conv_cu = U_cu * A_outer_cu * (T_cu - T_water);        %Convection copper-water
     Q_cu(i) = Q_conv_cu;
-  
     Q_loss_hsv = (T_water-T_air)/R_hsv ;                                                              %Heat loss hsv
     Q_loss_hsv(i) = Q_loss_hsv;  
-    
     %Temperature water
     T_water = T_0+(Q_conv_cu/(M_water*c_water));      %Final temperature water [K]
     y(i) = T_water;
-    
     %Plotting steps code
     t = t + 1;          % 1 stands for 1 step for time
     x(i) = t;           % time is on x axis
     i = i + 1;          % 1 step added for plot
 end
 %% Actual plot
-
 plot(x,y);
 xlim([0, t_final]);
 ylim([0, 2000]);
