@@ -12,7 +12,7 @@ T_pvc = 293;                %Starting temperature PVC in [K]
 T_pur = 293;                %Starting temperature polyurethane in [K]
 T_air = 293;                %Starting temperature air in [K]
 t = 0;                  %Time at the start [s]
-t_final=1200;                 %Time at end cycle [s]
+t_final=12;                 %Time at end cycle [s]
 %% First order variables
 
 %This section contains the properties and constants of the materials, but
@@ -186,7 +186,8 @@ V_system = V_cu+V_pvc+V_pur;                  %Volume of system
         %series or parallel
     R_hsv_radial = R_a_cd + R_a_cv + R_b_cd + R_c_r + R_d_cd + R_d_cv + R_d_r + R_e_cd + R_e_cv + R_f_cd + R_f_cv;
     R_hsv_endcaps =  R_hsv_endcaps_1 + R_hsv_endcaps_2 + R_hsv_endcaps_3 + R_hsv_endcaps_4 + R_hsv_endcaps_5 + R_hsv_endcaps_6;
-    R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
+    %R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
+    R_hsv = 33.03; %substitute thermal resistance from 24-05 version.
 
 %% Plotting info
 
@@ -230,6 +231,9 @@ while t<t_final
     %Heat flux HSV
         %if Q from other parts is known, t1 and t2 could be determined? (?  )
     
+        
+        
+        
     %Temperature water
     T_water = T_0+((Q_conv_cu + Q_gs)/M_water*c_water);      %Final temperature water [K]
     y(i) = T_water;
