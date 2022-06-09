@@ -9,7 +9,7 @@ T_cu = 293;                 %Starting temperature copper in [K]
 T_pvc = 293;                %Starting temperature PVC in [K]
 T_pur = 293;                %Starting temperature polyurethane in [K]
 T_air = 293;                %Starting temperature air in [K]
-t = 0;                  %Time at the start [s]
+t = 0;                      %Time at the start [s]
 t_final=1200;                 %Time at end cycle [s]
 %% First order variables
 %This section contains the properties and constants of the materials, but also fixed variables of the setup
@@ -189,8 +189,8 @@ while t<t_final
     Q_losscu(i)= Q_loss_rad_cu;
     Q_lossal(i)= Q_loss_rad_al;
     
-    T_al=T_al+(Q_rad_al+0.01*(-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al))/(M_al*c_al);  %Temperature of the aluminium plate [K]
-    T_cu=T_cu+(Q_rad_cu+0.01*(-Q_loss_rad_cu-Q_loss_cond_al_cu))/(M_cu*c_cu);              %Temperature of the copper tube
+    T_al=T_al+(Q_rad_al + 0.01*(-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al)) / (M_al*c_al);  %Temperature of the aluminium plate [K]
+    T_cu=T_cu+(Q_rad_cu + 0.01*(-Q_loss_rad_cu-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
     Tal(i)=T_al;
     Tcu(i)=T_cu;
     
