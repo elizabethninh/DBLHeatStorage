@@ -182,6 +182,8 @@ V_system = V_cu+V_pvc+V_pur;                  %Volume of system
     R_hsv_endcaps_6 = 0; %Convection to outside
     
     %Total
+        %Unsure as to whether or not to approach air pocket resistance as
+        %series or parallel
     R_hsv_radial = R_a_cd + R_a_cv + R_b_cd + R_c_r + R_d_cd + R_d_cv + R_d_r + R_e_cd + R_e_cv + R_f_cd + R_f_cv;
     R_hsv_endcaps =  R_hsv_endcaps_1 + R_hsv_endcaps_2 + R_hsv_endcaps_3 + R_hsv_endcaps_4 + R_hsv_endcaps_5 + R_hsv_endcaps_6;
     R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
