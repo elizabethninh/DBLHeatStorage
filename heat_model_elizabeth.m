@@ -36,6 +36,7 @@ length_cap_pvc = 0.034; %Length/Height of a PVC Endcap [m]
 epsilon_pvc = 0.9;      %Emissivity PVC [-]
 rho_pvc = 1330;         %Density PVC [kg/m^3]
 k_pvc = 0.19;           %Thermal conductivity PVC [W/(m K)]
+d_air_endcap = 0.01;    %Distance between Kingspan Therma and the PVC endcap. Used to determine therma resistance
 
 %Polyurethane tubing
 r_inner_pur = 0.004;    %Inner radius polyurethane tube [m]
@@ -133,7 +134,7 @@ h_air = 10;         %CVTH of still air [W/(m^2 K)], PLACEHOLDER
 h_water = 0.5;      %CVTH of water [W/(m^2 K)], PLACEHOLDER
 h_pvc = 0.5;        %CVTH PVC [W/(m^2 K)], PLACHEOLDER
 h_al = 0.05;        %CVTH aluminium [W/(m^2 K)]
-h_Kingspan = 0.5;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
+h_kingspan = 0.5;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 h_pur = 0.5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
 
 %Radiative heat transfer coefficients
@@ -149,40 +150,35 @@ U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 %Other
 V_system = V_cu+V_pvc+V_pur;                  %Volume of system  
 
-%Geometry-based Therma Resistance
-%check for reciprocal correctness
-    %Radial
-    R_a_cd = (log(r_outer_pvc / r_inner_pvc))/(2*pi * length_pvc * k_pvc); %Conductive transfer through pvc
-    R_a_cv = 1/(h_pvc* (hsv_pvc_a_single+hsv_pvc_a_double)); %Convection into air from pvc
-    R_b_cd = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1));  %Conduction through first still air pocket. simplified, assuming no convection.
-    R_c_r = (10*a_al_t) * (h_r_al * h_al); %Radiation transfer into aluminum reflector CHECK THIS
+%     R_a_cd = (log(r_outer_pvc / r_inner_pvc))/(2*pi * length_pvc * k_pvc); %Conductive transfer through pvc
+%     R_a_cv = 1/(h_pvc* (hsv_pvc_a_single+hsv_pvc_a_double)); %Convection into air from pvc
+%     R_b_cd = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1));  %Conduction through first still air pocket. simplified, assuming no convection.
+%     R_c_r = (10*a_al_t) * (h_r_al * h_al); %Radiation transfer into aluminum reflector CHECK THIS
+%     R_d_cd = d_al_t / (k_al * (10 * a_al_t) * length_pvc); %placeholder. Conduction through aluminum reflector. remember to account for the 10 panels
+%     R_d_cv = 1/((10*a_al_t) * h_al); %Convection from Aluminum plate into second air pocket
+%     R_d_r = R_c_r;                                                          %Radiation into second air pocket
+%     R_e_cd = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2));              %Conduction through second still air pocket
+%     R_e_cv = (10*hsv_therma_a_in) * (h_Kingspan + h_r_Kingspan);            %Convection into kingspan
+%     R_f_cd = ks_d * (ks_k * hsv_therma_a_avg * 10);                         %Conduction through kingspan
+%     R_f_cv = (10*hsv_therma_a_out) * (h_r_Kingspan + h_Kingspan);           %Convection to outside
+
+
+    %Simplified without radiation
+    R_a = 1/((1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc))); %Convection from PVC into first air pocket, And conduction through PVC.
+    R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
+    R_c = 1/((1/(h_al*(10*a_al_t))) + (d_al_t/k_al*(10*a_al_t))); %Convection from reflector to second air pocket, And conduction through reflector.
+    R_d = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2)); %Conduction through second air pocket
+    R_e = 1/((1/(h_kingspan*(10*hsv_therma_a_avg))) + (ks_d/ks_k*(10*hsv_therma_a_avg))); %Convection from Kingspan Therma to ambient, And conduction through Kingspan Therma.    
     
-    R_d_cd = d_al_t / (k_al * (10 * a_al_t) * length_pvc); %placeholder. Conduction through aluminum reflector. remember to account for the 10 panels
-    R_d_cv = 1/((10*a_al_t) * h_al); %Convection from Aluminum plate into second air pocket
-    R_d_r = R_c_r; %Radiation into second air pocket
-    
-    R_e_cd = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2)); %Conduction through second still air pocket
-    R_e_cv = (10*hsv_therma_a_in) * (h_Kingspan + h_r_Kingspan);  %Convection into kingspan
-    
-    R_f_cd = ks_d * (ks_k * hsv_therma_a_avg * 10);  %Conduction through kingspan
-    R_f_cv = (10*hsv_therma_a_out) * (h_r_Kingspan + h_Kingspan);  %Convection to outside
-    
-    
-    %Endcap
-    R_hsv_endcaps_1 = 0; %Conduction through endcap pvc material
-    R_hsv_endcaps_2 = 0; %Convection into air pocket
-    R_hsv_endcaps_3 = 0; %Conduction through air
-    R_hsv_endcaps_4 = 0; %Convection into Kingspan therma
-    R_hsv_endcaps_5 = 1 / (2 / (ks_d / (ks_k * (pvc_ec_a)))); %Conduction through kingspan therma
-    R_hsv_endcaps_6 = 0; %Convection to outside
-    
-    %Total
-        %Unsure as to whether or not to approach air pocket resistance as
-        %series or parallel
-    R_hsv_radial = R_a_cd + R_a_cv + R_b_cd + R_c_r + R_d_cd + R_d_cv + R_d_r + R_e_cd + R_e_cv + R_f_cd + R_f_cv;
-    R_hsv_endcaps =  R_hsv_endcaps_1 + R_hsv_endcaps_2 + R_hsv_endcaps_3 + R_hsv_endcaps_4 + R_hsv_endcaps_5 + R_hsv_endcaps_6;
-    %R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
-    R_hsv = 33.03; %substitute thermal resistance from 24-05 version.
+    R_hsv_radial = R_a + R_b + R_c + R_d + R_e;
+    %Endcap (Assumed single endcap here. Second one will be accounted for in R_hsv_endcaps)
+    R_z = 1/((1/(k_pvc*pvc_ec_a)) + (hsv_pvc_d/(k_pvc*pvc_ec_a)));          %Convection from PVC into air gap, and conduction through pvc.
+    R_y = d_air_endcap/(k_air * pvc_ec_a);                                  %Conduction through air gap
+    R_x = 1/((1/(h_kingspan*pvc_ec_a)) + (ks_d/(ks_k*pvc_ec_a)));                 %Convection from Kingspan Therma into outside atmosphere, and conduction through Kingspan Therma
+    R_hsv_endcaps = 1/((R_z + R_y + R_x) + (R_z + R_y + R_x));              %Total Equivalent Thermal resistance of both endcaps
+ 
+    R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
+    %R_hsv = 33.03; %substitute thermal resistance from 24-05 version.
 
 %% Plotting info
 
@@ -203,6 +199,9 @@ while t<t_final
     R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
     Q_loss_cond_al = (T_al-T_air)/R_al ;                                                              %Heat loss convection aluminium plate (other direction)
     Q_losscond_al(i) = Q_loss_cond_al;                        
+    
+    Q_loss_hsv = (T_al-T_air)/R_al ;                                                              %Heat loss hsv
+    Q_loss_hsv(i) = Q_loss_cond_al;  
     
     R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
     R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance wood setup
