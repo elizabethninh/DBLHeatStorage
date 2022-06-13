@@ -124,12 +124,12 @@ h_air = 10;         %CVTH of still air [W/(m^2 K)], PLACEHOLDER
 h_water = 0.5;      %CVTH of water [W/(m^2 K)], PLACEHOLDER
 h_pvc = 0.5;        %CVTH PVC [W/(m^2 K)], PLACHEOLDER
 h_al = 0.05;        %CVTH aluminium [W/(m^2 K)]
-h_kingspan = 0.5;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
+h_kingspan = 0.05;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 h_pur = 0.5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
 %Radiative heat transfer coefficients
-h_r_pvc = 0.5;       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
+h_r_pvc = 0.1;       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
 h_r_al = 0.08;       %RDTH of aluminium-foil [W/(m^2 K)], PLACEHOLDER (but value is uncertain within a certain range) 
-h_r_Kingspan = 0.5;  %RDTH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
+h_r_Kingspan = 0.08;  %RDTH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 h_r_pur = 0.5;       %RDTH of Polyurethane [W/(m^2 K)], PLACEHOLDER
 %Overall Heat Transfer Coefficients, (may change due to change in CVTH)
 U_cu = 1700;         %OHTC water in copper [W/(m^2 K)]
@@ -154,7 +154,7 @@ V_system = V_cu+V_pvc+V_pur;                  %Volume of system
     R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
     R_c = 1/((1/(h_al*(10*a_al_t))) + (d_al_t/k_al*(10*a_al_t))); %Convection from reflector to second air pocket, And conduction through reflector.
     R_d = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2)); %Conduction through second air pocket
-    R_e = 1/((1/(h_kingspan*(10*hsv_therma_a_avg))) + (ks_d/ks_k*(10*hsv_therma_a_avg))); %Convection from Kingspan Therma to ambient, And conduction through Kingspan Therma.    
+    R_e = 1/((1/(h_kingspan*(10*hsv_therma_a_avg))) + (ks_d/(ks_k*(10*hsv_therma_a_avg)))); %Convection from Kingspan Therma to ambient, And conduction through Kingspan Therma.    
     R_hsv_radial = R_a + R_b + R_c + R_d + R_e;
     %Endcap (Assumed single endcap here. Second one will be accounted for in R_hsv_endcaps)
     R_z = 1/((1/(k_pvc*pvc_ec_a)) + (hsv_pvc_d/(k_pvc*pvc_ec_a)));          %Convection from PVC into air gap, and conduction through pvc.
