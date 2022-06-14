@@ -10,7 +10,7 @@ T_pvc = 293;                %Starting temperature PVC in [K]
 T_pur = 293;                %Starting temperature polyurethane in [K]
 T_air = 293;                %Starting temperature internal air in [K]
 T_amb = 293;                %Starting temperature ambient (outside) air in [K]
-t = 0;                      %Time at the start [s]
+t = 1;                      %Time at the start [s]
 t_final=1200;               %Time at end cycle [s]
 %% First order variables
 %This section contains the properties and constants of the materials, but also fixed variables of the setup
@@ -174,14 +174,14 @@ R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance woo
 T_air = repmat(T_0, 1,t_final);
 T_cu = repmat(0, 1,t_final);
 T_al = repmat(0, 1,t_final);
-%T_water = repmat(0, 1,t_final);
-%T_pvc = repmat(0, 1,t_final);
-%T_pur = repmat(0, 1,t_final);
-%T_0 = repmat(T_0, 1,t_final);
+T_water = repmat(0, 1,t_final);
+T_pvc = repmat(0, 1,t_final);
+T_pur = repmat(0, 1,t_final);
+T_0 = repmat(T_0, 1,t_final);
 
 
 %% Plotting info
-while t<t_final
+for i = 1:t_final
     %Water
     %rho_water = (999.83953 + 16.945176 * (1.00024*T_water) - 7.9870401*10^-3 * (1.00024*T_water)^3 - 46.17046*10^-6* (1.00024*T_water)^3 +105.56302*10^-9 * (1.00024*T_water)^4 - 280.54253*10^-12 * (1.00024*T_water)^5)/(1+16.897850*10^-3 * (1.00024*T_water));   %Density water
     M_water = V_system*rho_water_20C;       %Volume of water inside system
@@ -200,28 +200,28 @@ while t<t_final
     %Q_losscu(i)= Q_loss_rad_cu;
     %Q_lossal(i)= Q_loss_rad_al; 
     %Temperature al and cu
-    T_al(i)=T_al(i-1)+(Q_rad_al + 0.01*(-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al)) / (M_al*c_al);  %Temperature of the aluminium plate [K]
-    T_cu(i)=T_cu(i-1)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
+    T_al(i)=T_al(i)+(Q_rad_al + 0.01*(-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al)) / (M_al*c_al);  %Temperature of the aluminium plate [K]
+    T_cu(i)=T_cu(i)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
     
     %Convective heat transfer to system liquid
-    Q_conv_cu = U_cu * A_outer_cu * (T_cu(i) - T_water);        %Convection copper-water
+    Q_conv_cu = U_cu * A_outer_cu * (sum(T_cu) - T_water(i));        %Convection copper-water
     
     %Temperature water - Copper - add
-    T_water = T_0+(Q_conv_cu/(M_water*c_water));      %Final temperature water [K]
+    T_water(i) = T_0(i)+(Q_conv_cu/(M_water*c_water));      %Final temperature water [K]
     
     %Heat Storage Vessel - loss
-    Q_loss_hsv(i) = (T_water-T_amb)/R_hsv ;           %Heat loss hsv
-    T_water = T_water-(Q_loss_hsv(i)/(M_water*c_water));      %Final temperature water [K]
+    Q_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;           %Heat loss hsv
+    T_water(i) = T_water(i)-(sum(Q_loss_hsv)/(M_water*c_water));      %Final temperature water [K]
     
     %Plotting steps code
-    y(i) = T_water; %Inserts current temp into its respective place in y for plotting
+    y(i) = T_water(i); %Inserts current temp into its respective place in y for plotting
     t = t + 1;          % 1 stands for 1 step for time
-    x(i) = t;           % time is on x axis
+    x(i) = i;           % time is on x axis
     i = i + 1;          % 1 step added for plot
 end
 %% Actual plot
 plot(x,y);
 xlim([0, t_final]);
-ylim([0, 2000]);
+ylim([280, 310]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
