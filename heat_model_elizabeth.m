@@ -197,16 +197,12 @@ for i = 1:t_final
     Q_losscond_al(i) = Q_loss_cond_al;                        
     Q_loss_rad_cu = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
     Q_loss_rad_al = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
-    %Q_losscu(i)= Q_loss_rad_cu;
-    %Q_lossal(i)= Q_loss_rad_al; 
     %Temperature al and cu
     T_al(i)=T_al(i)+(Q_rad_al + 0.01*(-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al)) / (M_al*c_al);  %Temperature of the aluminium plate [K]
     T_cu(i)=T_cu(i)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
     
-    %Convective heat transfer to system liquid
-    Q_conv_cu = U_cu * A_outer_cu * (sum(T_cu) - T_water(i));        %Convection copper-water
-    
     %Temperature water - Copper - add
+    Q_conv_cu = U_cu * A_outer_cu * (sum(T_cu) - T_water(i));        %Convection copper-water
     T_water(i) = T_0(i)+(Q_conv_cu/(M_water*c_water));      %Final temperature water [K]
     
     %Heat Storage Vessel - loss
