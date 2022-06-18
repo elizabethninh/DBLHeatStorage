@@ -54,7 +54,7 @@ c_water = 4148;         %Specific heat water [J/kg K]
 %Air
 rho_air = 1.29;         %Density air at 20C [kg/m^3]
 c_air = 1006;           %Specific heat air [J/kg K]
-k_air = 0.5;             %Placeholder
+k_air = 0.025;          %Thermal conductivity air [W/m K]
 %General Setup Wood Properties
 k_wood = 0.12;       %Thermal Conductivity of Pinewood [W/m k]                       
 d_wood = 0.054;      %Wood border thcikness [m], simplification, in reality 2 mm air pocket within 
@@ -121,11 +121,11 @@ d_al_t = 0.0001;                            % Thickness of an aluminum reflector
 a_al_t = hsv_al_width * length_pvc;         % Area of a single heat reflector element. 10 are present in total [m^2]
     
 % Convective heat transfer coefficients
-h_air = 10;         %CVTH of still air [W/(m^2 K)], PLACEHOLDER
-h_water = 0.5;      %CVTH of water [W/(m^2 K)], PLACEHOLDER
-h_pvc = 0.5;        %CVTH PVC [W/(m^2 K)], PLACHEOLDER
-h_al = 0.05;        %CVTH aluminium [W/(m^2 K)]
-h_kingspan = 0.05;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
+h_air = 5.0;         %CVTH of still air [W/(m^2 K)], Range (4.0 to 5.9)
+h_water = 100;      %CVTH of water [W/(m^2 K)], Range (100 to 15000), Unused
+h_pvc = 5;        %CVTH PVC [W/(m^2 K)], Range (5 to 9)
+h_al = 7;        %CVTH aluminium [W/(m^2 K)], Range (7 to 10)
+h_kingspan = 10;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], Range (10 to 30) (Aluminum surface)
 h_pur = 0.5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
 %Radiative heat transfer coefficients
 h_r_pvc = 0.1;       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
@@ -189,17 +189,15 @@ for i = 1:t_final
     %%Solar collector
     Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
     Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
-    Q_loss_conv_al = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
+    Q_loss_conv_al(i) = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
     Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al(i)-T_cu(i))/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
-    Q_lossconv(i)= Q_loss_conv_al;
     Q_losscond(i)= Q_loss_cond_al_cu;
-    Q_loss_cond_al = (T_al(i)-T_air(i))/R_al ;                                                              %Heat loss convection aluminium plate (other direction)
-    Q_losscond_al(i) = Q_loss_cond_al;                        
-    Q_loss_rad_cu = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
-    Q_loss_rad_al = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
+    Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                                              %Heat loss convection aluminium plate (other direction)
+    Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
+    Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
     %Temperature al and cu
-    T_al(i)=T_al(i)+(Q_rad_al + 0.01*(-Q_loss_conv_al-Q_loss_cond_al-Q_loss_rad_al)) / (M_al*c_al);  %Temperature of the aluminium plate [K]
-    T_cu(i)=T_cu(i)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
+    T_al(i)=T_al(i)+(Q_rad_al + 0.01*(-Q_loss_conv_al(i)-Q_loss_cond_al(i)-Q_loss_rad_al(i))) / (M_al*c_al);  %Temperature of the aluminium plate [K]
+    T_cu(i)=T_cu(i)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu(i)-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
     
     %Temperature water - Copper - add
     Q_conv_cu = U_cu * A_outer_cu * (sum(T_cu) - T_water(i));        %Convection copper-water
@@ -218,6 +216,6 @@ end
 %% Actual plot
 plot(x,y);
 xlim([0, t_final]);
-ylim([280, 310]);
+ylim([273, 373]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
