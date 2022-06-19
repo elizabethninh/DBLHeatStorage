@@ -1,7 +1,7 @@
 clear all, close all, clc
 %% Setup
 % This section contains the parameters of the setup (start of cycle)
-i=1;                     %Value for plot
+i=0;                     %Value for plot
 T_0 = 293;              %Starting temperature in [K], assumed for all fluids, gasses and materials
 T_water = 293;              %Starting temperature water in [K]
 T_al = 293;                 %Starting temperature aluminium in [K]
@@ -10,7 +10,7 @@ T_pvc = 293;                %Starting temperature PVC in [K]
 T_pur = 293;                %Starting temperature polyurethane in [K]
 T_air = 293;                %Starting temperature internal air in [K]
 T_amb = 293;                %Starting temperature ambient (outside) air in [K]
-t = 1;                      %Time at the start [s]
+t = 0;                      %Time at the start [s]
 t_final=1200;               %Time at end cycle [s]
 %% First order variables
 %This section contains the properties and constants of the materials, but also fixed variables of the setup
@@ -184,8 +184,8 @@ T_0 = repmat(T_0, 1,t_final);
 %% Plotting info
 for i = 1:t_final
     %Water
-    %rho_water = (999.83953 + 16.945176 * (1.00024*T_water) - 7.9870401*10^-3 * (1.00024*T_water)^3 - 46.17046*10^-6* (1.00024*T_water)^3 +105.56302*10^-9 * (1.00024*T_water)^4 - 280.54253*10^-12 * (1.00024*T_water)^5)/(1+16.897850*10^-3 * (1.00024*T_water));   %Density water
-    M_water = V_system*rho_water_20C;       %Volume of water inside system
+    rho_water = (999.83953 + 16.945176 * (1.00024*T_water(i)) - 7.9870401*10^-3 * (1.00024*T_water(i))^3 - 46.17046*10^-6* (1.00024*T_water(i))^3 +105.56302*10^-9 * (1.00024*T_water(i))^4 - 280.54253*10^-12 * (1.00024*T_water(i))^5)/(1+16.897850*10^-3 * (1.00024*T_water(i)));   %Density water
+    M_water = V_system*rho_water;       %Volume of water inside system
     
     %%Solar collector
     Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
@@ -202,10 +202,10 @@ for i = 1:t_final
     
     %Temperature water - Copper - adds heat
     Q_conv_cu(i) = U_cu * A_outer_cu * (T_cu(i) - T_water(i));        %Convection copper-water
-    T_water(i) = T_0(i)+(Q_conv_cu(i)/(M_water*c_water));      %Final temperature water [K]
+    T_water(i) = T_water(i)+(Q_conv_cu(i)/(M_water*c_water));      %Final temperature water [K]
     
     %Heat Storage Vessel - loss
-    Q_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;           %Heat loss hsv
+    Q_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;          %Heat loss hsv
     Q_loss_pur(i) = (T_water(i)-T_amb)/R_pur;           %Heat loss polyurethane tubing 
     Q_loss(i) = Q_loss_hsv(i) + Q_loss_pur(i);           %Sum all of the heat losses per second instance here
     T_water(i) = T_water(i)-((sum(Q_loss)/(M_water*c_water)));      %Final temperature water [K]
