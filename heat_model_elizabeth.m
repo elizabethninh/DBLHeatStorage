@@ -200,9 +200,9 @@ for i = 1:t_final
     T_al(i)=T_al(i)+(Q_rad_al + 0.01*(-Q_loss_conv_al(i)-Q_loss_cond_al(i)-Q_loss_rad_al(i))) / (M_al*c_al);  %Temperature of the aluminium plate [K]
     T_cu(i)=T_cu(i)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu(i)-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
     
-    %Temperature water - Copper - add
-    Q_conv_cu = U_cu * A_outer_cu * (sum(T_cu) - T_water(i));        %Convection copper-water
-    T_water(i) = T_0(i)+(Q_conv_cu/(M_water*c_water));      %Final temperature water [K]
+    %Temperature water - Copper - adds heat
+    Q_conv_cu(i) = U_cu * A_outer_cu * (T_cu(i) - T_water(i));        %Convection copper-water
+    T_water(i) = T_0(i)+(Q_conv_cu(i)/(M_water*c_water));      %Final temperature water [K]
     
     %Heat Storage Vessel - loss
     Q_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;           %Heat loss hsv
