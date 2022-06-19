@@ -179,10 +179,11 @@ T_water = repmat(T_water, 1,t_final);
 T_pvc = repmat(T_pvc, 1,t_final);
 T_pur = repmat(T_pur, 1,t_final);
 T_0 = repmat(T_0, 1,t_final);
+T_amb = repmat(T_amb, 1,t_final);
 
 
 %% Plotting info
-for i = 1:t_final
+for i = 2:t_final
     %Water
     rho_water = (999.83953 + 16.945176 * (1.00024*T_water(i)) - 7.9870401*10^-3 * (1.00024*T_water(i))^3 - 46.17046*10^-6* (1.00024*T_water(i))^3 +105.56302*10^-9 * (1.00024*T_water(i))^4 - 280.54253*10^-12 * (1.00024*T_water(i))^5)/(1+16.897850*10^-3 * (1.00024*T_water(i)));   %Density water
     M_water = V_system*rho_water;       %Volume of water inside system
@@ -197,6 +198,7 @@ for i = 1:t_final
     Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
     Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
     Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
+    
     %Temperature al and cu
     T_al(i)=T_al(i)+(Q_rad_al + 0.01*(-Q_loss_conv_al(i)-Q_loss_cond_al(i)-Q_loss_rad_al(i))) / (M_al*c_al);  %Temperature of the aluminium plate [K]
     T_cu(i)=T_cu(i)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu(i)-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
@@ -206,8 +208,8 @@ for i = 1:t_final
     T_water(i) = T_water(i)+(Q_conv_cu(i)/(M_water*c_water));      %Final temperature water [K]
     
     %Heat Storage Vessel - loss
-    Q_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;          %Heat loss hsv
-    Q_loss_pur(i) = (T_water(i)-T_amb)/R_pur;           %Heat loss polyurethane tubing 
+    Q_loss_hsv(i) = (T_water(i)-T_amb(i))/R_hsv ;          %Heat loss hsv
+    Q_loss_pur(i) = (T_water(i)-T_amb(i))/R_pur;           %Heat loss polyurethane tubing 
     Q_loss(i) = Q_loss_hsv(i) + Q_loss_pur(i);           %Sum all of the heat losses per second instance here
     T_water(i) = T_water(i)-((sum(Q_loss)/(M_water*c_water)));      %Final temperature water [K]
     
