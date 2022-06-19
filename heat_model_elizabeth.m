@@ -172,12 +172,12 @@ R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance woo
 R_pur = 1/((1/(h_pur*(A_outer_pur))) + (log(r_outer_pur/r_inner_pur)/(2*pi*length_pur*k_pur))); %Thermal resistance of Polyurethane tube. Not accounting for rad
 
 %Empty Arrays
-T_air = repmat(T_0, 1,t_final);
-T_cu = repmat(0, 1,t_final);
-T_al = repmat(0, 1,t_final);
-T_water = repmat(0, 1,t_final);
-T_pvc = repmat(0, 1,t_final);
-T_pur = repmat(0, 1,t_final);
+T_air = repmat(T_amb, 1,t_final);
+T_cu = repmat(T_cu, 1,t_final);
+T_al = repmat(T_al, 1,t_final);
+T_water = repmat(T_water, 1,t_final);
+T_pvc = repmat(T_pvc, 1,t_final);
+T_pur = repmat(T_pur, 1,t_final);
 T_0 = repmat(T_0, 1,t_final);
 
 
@@ -193,7 +193,8 @@ for i = 1:t_final
     Q_loss_conv_al(i) = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
     Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al(i)-T_cu(i))/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
     Q_losscond(i)= Q_loss_cond_al_cu;
-    Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                                              %Heat loss convection aluminium plate (other direction)
+    
+    Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
     Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
     Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
     %Temperature al and cu
@@ -219,9 +220,10 @@ end
 %% Actual plot
 plot(x,y);
 hold on
-plot(x,y);
+plot(x,Q_loss);
+plot(x,Q_conv_cu);
 hold off
 xlim([0, t_final]);
-ylim([273, 373]);
+ylim([0, 500]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
