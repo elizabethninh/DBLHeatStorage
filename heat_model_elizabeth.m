@@ -129,7 +129,7 @@ h_kingspan = 10;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], Range (10 to
 h_pur = 5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
 %Radiative heat transfer coefficients
 h_r_pvc = 0.1;       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
-h_r_al = 0.08;       %RDTH of aluminium-foil [W/(m^2 K)], PLACEHOLDER (but value is uncertain within a certain range) 
+h_r_al = 0.08;       %RDTH of aluminium-foil [W/(m^2 K)], PLACEHOLDER 
 h_r_Kingspan = 0.08;  %RDTH of Kingspan-Therma insulation [W/(m^2 K)], PLACEHOLDER
 h_r_pur = 0.5;       %RDTH of Polyurethane [W/(m^2 K)], PLACEHOLDER
 %Overall Heat Transfer Coefficients, (may change due to change in CVTH)
@@ -208,7 +208,7 @@ for i = 1:t_final
     Q_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;           %Heat loss hsv
     Q_loss_pur(i) = (T_water(i)-T_amb)/R_pur;           %Heat loss polyurethane tubing 
     Q_loss(i) = Q_loss_hsv(i) + Q_loss_pur(i);           %Sum all of the heat losses per second instance here
-    T_water(i) = T_water(i)-(sum(Q_loss)/(M_water*c_water));      %Final temperature water [K]
+    T_water(i) = T_water(i)-((sum(Q_loss)/(M_water*c_water)));      %Final temperature water [K]
     
     %Plotting steps code
     y(i) = T_water(i); %Inserts current temp into its respective place in y for plotting
@@ -218,6 +218,9 @@ for i = 1:t_final
 end
 %% Actual plot
 plot(x,y);
+hold on
+plot(x,y);
+hold off
 xlim([0, t_final]);
 ylim([273, 373]);
 xlabel('Time [s]');
