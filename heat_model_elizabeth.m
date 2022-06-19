@@ -126,7 +126,7 @@ h_water = 100;      %CVTH of water [W/(m^2 K)], Range (100 to 15000), Unused
 h_pvc = 5;        %CVTH PVC [W/(m^2 K)], Range (5 to 9)
 h_al = 7;        %CVTH aluminium [W/(m^2 K)], Range (7 to 10)
 h_kingspan = 10;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], Range (10 to 30) (Aluminum surface)
-h_pur = 0.5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
+h_pur = 5;        %CVTH of Polyurethane [W/(m^2 K)], PLACEHOLDER            
 %Radiative heat transfer coefficients
 h_r_pvc = 0.1;       %RDTH of pvc [W/(m^2 K)], PLACEHOLDER
 h_r_al = 0.08;       %RDTH of aluminium-foil [W/(m^2 K)], PLACEHOLDER (but value is uncertain within a certain range) 
@@ -162,14 +162,15 @@ R_z = 1/((1/(k_pvc*pvc_ec_a)) + (hsv_pvc_d/(k_pvc*pvc_ec_a)));          %Convect
 R_y = d_air_endcap/(k_air * pvc_ec_a);                                  %Conduction through air gap
 R_x = 1/((1/(h_kingspan*pvc_ec_a)) + (ks_d/(ks_k*pvc_ec_a)));           %Convection from Kingspan Therma into outside atmosphere, and conduction through Kingspan Therma
 R_hsv_endcaps = 1/((R_z + R_y + R_x) + (R_z + R_y + R_x));              %Total Equivalent Thermal resistance of both endcaps
-R_hsv = 1/(1/R_hsv_radial + 1/R_hsv_endcaps);
+R_hsv = 1/((1/R_hsv_radial) + (1/R_hsv_endcaps));
 
 
 %misc thermal resistance (taken out of loop)
 R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
 R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
 R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance wood setup    
-    
+R_pur = 1/((1/(h_pur*(A_outer_pur))) + (log(r_outer_pur/r_inner_pur)/(2*pi*length_pur*k_pur))); %Thermal resistance of Polyurethane tube. Not accounting for rad
+
 %Empty Arrays
 T_air = repmat(T_0, 1,t_final);
 T_cu = repmat(0, 1,t_final);
@@ -205,7 +206,9 @@ for i = 1:t_final
     
     %Heat Storage Vessel - loss
     Q_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;           %Heat loss hsv
-    T_water(i) = T_water(i)-(sum(Q_loss_hsv)/(M_water*c_water));      %Final temperature water [K]
+    Q_loss_pur(i) = (T_water(i)-T_amb)/R_pur;           %Heat loss polyurethane tubing 
+    Q_loss(i) = Q_loss_hsv(i) + Q_loss_pur(i);           %Sum all of the heat losses per second instance here
+    T_water(i) = T_water(i)-(sum(Q_loss)/(M_water*c_water));      %Final temperature water [K]
     
     %Plotting steps code
     y(i) = T_water(i); %Inserts current temp into its respective place in y for plotting
