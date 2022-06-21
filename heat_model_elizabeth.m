@@ -11,7 +11,7 @@ T_pur = 293;                %Starting temperature polyurethane in [K]
 T_air = 293;                %Starting temperature internal air in [K]
 T_amb = 293;                %Starting temperature ambient (outside) air in [K]
 t = 1;                      %Time at the start [s]
-t_final=120;               %Time at end cycle [s]
+t_final=1200;               %Time at end cycle [s]
 %% First order variables
 %This section contains the properties and constants of the materials, but also fixed variables of the setup
 %Copper tubing
@@ -170,7 +170,7 @@ T_pur = repmat(0, 1,t_final);
 T_0 = repmat(0, 1,t_final);
 
 T_0(1) = 293;                  %Starting temperature in [K], assumed for all fluids, gasses and materials
-T_water(1) = 303;              %Starting temperature water in [K]
+T_water(1) = 373;              %Starting temperature water in [K]
 T_al(1) = 293;                 %Starting temperature aluminium in [K]
 T_cu(1) = 293;                 %Starting temperature copper in [K]
 T_pur(1) = 293;                %Starting temperature polyurethane in [K]
@@ -188,7 +188,7 @@ for i = 1:t_final
     Q_rad_cu = E*length_cu*(r_outer_cu* pi)*epsilon_paint;          %Heat addition radiation on copper tube [W] (only half of tube exposed directly to light)
     
     Qdot_gain(i) = 100*i;   %Fill sum of energy gains here
-    T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
+    %T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
 
     
     %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
@@ -225,9 +225,14 @@ for i = 1:t_final
     i = i + 1;          % 1 step added for plot
 end
 %% Actual plot
-plot(x,y);
-
+plot(x,y)
+hold on
+plot(x(1:60:t_final),y(1:60:t_final), 'o')
+for t = 1:60:t_final(x)
+  text(x+0.1,y+0.1,['(',num2str(x),',',num2str(y),')'])
+end
+hold off
 xlim([0, t_final]);
-ylim([200, 500]);
+ylim([293, 393]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
