@@ -163,25 +163,39 @@ T_pur(1) = 293;                %Starting temperature polyurethane in [K]
 T_air(1) = 293;                %Starting temperature internal air in [K]
 
 A_contact_al_cu = length_cu * 0.002; %The contact patch area between the Aluminum and Copper. Simple lengthxwidth for area.
-
+V_body_collector = 1.72*0.67*0.067;
+M_air = V_body_collector*rho_air;   
 %% Plotting info
 for i = 1:t_final
     %Water Mass
     %rho_water = (999.83953 + 16.945176 * (1.00024*T_water(i)) - 7.9870401*10^-3 * (1.00024*T_water(i))^3 - 46.17046*10^-6* (1.00024*T_water(i))^3 +105.56302*10^-9 * (1.00024*T_water(i))^4 - 280.54253*10^-12 * (1.00024*T_water(i))^5)/(1+16.897850*10^-3 * (1.00024*T_water(i)));   %Density water
     M_water = V_system*rho_water_20C;       %Volume of water inside system. Can produce weird values if the rest doesnt work, likely not cause of issues.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-    %Addition of Heat, And loss of heat in collector solids and air - Needs improvement
-    Q_rad_al = E*(A_al-A_exposed_cu)*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]   
-    Q_rad_cu = E*length_cu*(r_outer_cu* pi)*epsilon_paint;          %Heat addition radiation on copper tube [W] (only half of tube exposed directly to light)
-    T_al(i) = T_al(i)+(Q_rad_al/(M_al*c_al));                       %Temperature of aluminum as it heats up from radiation [k]
-    T_cu(i) = T_cu(i)+(Q_rad_cu/(M_cu*c_cu));                       %Temperature of aluminum as it heats up from radiation [k]    
+    %Addition of Heat energy through radiation, And loss of heat in collector solids and air - Needs improvement
+    Qdot_rad_al = E*(A_al-A_exposed_cu)*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]   
+    Qdot_rad_cu = E*length_cu*(r_outer_cu* pi)*epsilon_paint;          %Heat addition radiation on copper tube [W] (only half of tube exposed directly to light)
+    T_al(i) = T_al(i)+(Qdot_rad_al/(M_al*c_al));                       %Temperature of aluminum as it heats up from radiation [k]
+    T_cu(i) = T_cu(i)+(Qdot_rad_cu/(M_cu*c_cu));                       %Temperature of aluminum as it heats up from radiation [k]    
     %Losses to inside of collector space
-    Q_loss_conv_al(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W] 
-    T_al(i) = T_al(i)-(Q_loss_conv_al(i)/(M_al*c_al));                       %Temperature of aluminum as it heats up from radiation [k]   
-    Q_loss_conv_cu(i) = h_air*(A_outer_cu)*(T_cu(i)-T_air(i));
-    T_cu(i) = T_cu(i)-(Q_loss_conv_cu(i)/(M_cu*c_cu)); 
+    Qdot_loss_conv_al(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W] 
+    T_al(i) = T_al(i)-(Qdot_loss_conv_al(i)/(M_al*c_al));                       %Temperature of aluminum as it heats up from radiation [k]   
+    Qdot_loss_conv_cu(i) = h_air*(A_outer_cu)*(T_cu(i)-T_air(i));
+    T_cu(i) = T_cu(i)-(Qdot_loss_conv_cu(i)/(M_cu*c_cu)); 
+    %Heating of air inside of collector
+    T_air(i) = T_air(i) + ((Qdot_loss_conv_cu(i)+Qdot_loss_conv_cu(i))/(M_cu*c_cu)); 
+    %Heated air going back into collector Al and Cu by means of convection (This stabilizes the internal temperatures and ensures that the ambient air's heat can eventually make its way into the liq)
+    Qdot_gain_conv_al(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i));     
+    Qdot_gain_conv_cu(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i)); 
+    T_al(i) = T_al(i)+(Qdot_gain_conv_al(i)/(M_al*c_al));      
+    T_cu(i) = T_cu(i)+(Qdot_gain_conv_cu(i)/(M_cu*c_cu));    
+        %By this point no external losses in the collector are accounted for, following section transports away heat energy into the water.
     
-
+        
+        
+    Qdot_gain(i) = h_water*(A_inner_cu)*(T_cu(i)-T_water(i));   %Fill sum of energy gains here [J/s or W]
+    T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
+    
+    
     
     %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
     %Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
@@ -192,12 +206,6 @@ for i = 1:t_final
     %Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
     %Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
     %Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
-    
-    
-    Qdot_gain(i) = 0.05*i^1.05;   %Fill sum of energy gains here [J/s or W]
-    T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
- 
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Liquid - loss - This works as intended
     Qdot_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;                           %Heat loss hsv
@@ -210,6 +218,7 @@ for i = 1:t_final
     T_water(i+1) = T_water(i);                                              %brings current water temp over to the next time increment
     T_al(i+1) = T_al(i);
     T_cu(i+1) = T_cu(i);
+    T_air(i+1) = T_air(i);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Plotting code
     y(i) = T_water(i);                                                      %Inserts current temp into its respective place in y for plotting
@@ -234,11 +243,11 @@ plot(x,Qdot_gain)
 xlim([0, t_final]);
 ylim([0, 300]);
 xlabel('Time [s]');
-ylabel('Heat Energy Gain [J/s & W]');
+ylabel('Heat Energy Gain in a second [J/s & W]');
 %Plot of Heat Energy Loss per Second
 figure(3)
 plot(x,Qdot_loss)
 xlim([0, t_final]);
 ylim([0, 300]);
 xlabel('Time [s]');
-ylabel('Heat Energy Loss [J/s & W]');
+ylabel('Heat Energy Loss in a second [J/s & W]');
