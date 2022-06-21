@@ -186,6 +186,18 @@ for i = 1:t_final
     Qdot_gain(i) = 100*i;   %Fill sum of energy gains here
     T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
 
+    
+    %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
+    %Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
+    %Q_loss_conv_al(i) = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
+    %Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al(i)-T_cu(i))/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
+    %Q_losscond(i)= Q_loss_cond_al_cu;
+    
+    %Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
+    %Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
+    %Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
+    
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Heat Storage Vessel - loss - This works completely
     Qdot_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;                           %Heat loss hsv
