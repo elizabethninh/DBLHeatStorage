@@ -1,7 +1,7 @@
 clear all, close all, clc
 %% Setup
 % This section contains the parameters of the setup (start of cycle)
-i=0;                     %Value for plot
+i=1;                     %Value for plot
 T_0 = 293;              %Starting temperature in [K], assumed for all fluids, gasses and materials
 T_water = 293;              %Starting temperature water in [K]
 T_al = 293;                 %Starting temperature aluminium in [K]
@@ -10,7 +10,7 @@ T_pvc = 293;                %Starting temperature PVC in [K]
 T_pur = 293;                %Starting temperature polyurethane in [K]
 T_air = 293;                %Starting temperature internal air in [K]
 T_amb = 293;                %Starting temperature ambient (outside) air in [K]
-t = 0;                      %Time at the start [s]
+t = 1;                      %Time at the start [s]
 t_final=1200;               %Time at end cycle [s]
 %% First order variables
 %This section contains the properties and constants of the materials, but also fixed variables of the setup
@@ -43,7 +43,7 @@ epsilon_pur = 0.9;      %Emissivity polyurethane [-]
 k_pur = 0.13;           %Thermal conducitivity polyurethane [W/(m K)]
 %Aluminium plate
 A_al = 1.085;           %Area aluminium plate [m^2]
-epsilon_paint = 0.95;   %Emissivity black acrylic paint [-]
+epsilon_paint = 0.95;   %Emissivity black acrylic paint [-] 
 rho_al = 2700;          %Density aluminium [kg/m^3]
 d_al = 0.002;           %thickness aluminium plate [m]
 k_al = 237;             %Thermal conductivity aluminium [W/(m K)]
@@ -139,17 +139,6 @@ U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 %Other
 V_system = V_cu+V_pvc+V_pur;                  %Volume of system  
 
-%     R_a_cd = (log(r_outer_pvc / r_inner_pvc))/(2*pi * length_pvc * k_pvc); %Conductive transfer through pvc
-%     R_a_cv = 1/(h_pvc* (hsv_pvc_a_single+hsv_pvc_a_double)); %Convection into air from pvc
-%     R_b_cd = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1));  %Conduction through first still air pocket. simplified, assuming no convection.
-%     R_c_r = (10*a_al_t) * (h_r_al * h_al); %Radiation transfer into aluminum reflector CHECK THIS
-%     R_d_cd = d_al_t / (k_al * (10 * a_al_t) * length_pvc); %placeholder. Conduction through aluminum reflector. remember to account for the 10 panels
-%     R_d_cv = 1/((10*a_al_t) * h_al); %Convection from Aluminum plate into second air pocket
-%     R_d_r = R_c_r;                                                          %Radiation into second air pocket
-%     R_e_cd = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2));              %Conduction through second still air pocket
-%     R_e_cv = (10*hsv_therma_a_in) * (h_Kingspan + h_r_Kingspan);            %Convection into kingspan
-%     R_f_cd = ks_d * (ks_k * hsv_therma_a_avg * 10);                         %Conduction through kingspan
-%     R_f_cv = (10*hsv_therma_a_out) * (h_r_Kingspan + h_Kingspan);           %Convection to outside
 %Simplified without radiation
 R_a = 1/((1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc))); %Convection from PVC into first air pocket, And conduction through PVC.
 R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
@@ -172,21 +161,27 @@ R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance woo
 R_pur = 1/((1/(h_pur*(A_outer_pur))) + (log(r_outer_pur/r_inner_pur)/(2*pi*length_pur*k_pur))); %Thermal resistance of Polyurethane tube. Not accounting for rad
 
 %Empty Arrays
-T_air = repmat(T_amb, 1,t_final);
-T_cu = repmat(T_cu, 1,t_final);
-T_al = repmat(T_al, 1,t_final);
-T_water = repmat(T_water, 1,t_final);
-T_pvc = repmat(T_pvc, 1,t_final);
-T_pur = repmat(T_pur, 1,t_final);
-T_0 = repmat(T_0, 1,t_final);
+T_air = repmat(0, 1,t_final);
+T_cu = repmat(0, 1,t_final);
+T_al = repmat(0, 1,t_final);
+T_water = repmat(0, 1,t_final);
+T_pur = repmat(0, 1,t_final);
+T_0 = repmat(0, 1,t_final);
 T_amb = repmat(T_amb, 1,t_final);
 
+T_0(1) = 293;                  %Starting temperature in [K], assumed for all fluids, gasses and materials
+T_water(1) = 293;              %Starting temperature water in [K]
+T_al(1) = 293;                 %Starting temperature aluminium in [K]
+T_cu(1) = 293;                 %Starting temperature copper in [K]
+T_pur(1) = 293;                %Starting temperature polyurethane in [K]
+T_air(1) = 293;                %Starting temperature internal air in [K]
+T_amb(1) = 293;                %Starting temperature ambient (outside) air in [K]
 
 %% Plotting info
-for i = 2:t_final
+for i = 1:t_final
     %Water
     rho_water = (999.83953 + 16.945176 * (1.00024*T_water(i)) - 7.9870401*10^-3 * (1.00024*T_water(i))^3 - 46.17046*10^-6* (1.00024*T_water(i))^3 +105.56302*10^-9 * (1.00024*T_water(i))^4 - 280.54253*10^-12 * (1.00024*T_water(i))^5)/(1+16.897850*10^-3 * (1.00024*T_water(i)));   %Density water
-    M_water = V_system*rho_water;       %Volume of water inside system
+    M_water = V_system*rho_water;       %Volume of water inside system. Can produce weird values if the rest doesnt work, likely not cause of issues.
     
     %%Solar collector
     Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
@@ -208,11 +203,15 @@ for i = 2:t_final
     T_water(i) = T_water(i)+(Q_conv_cu(i)/(M_water*c_water));      %Final temperature water [K]
     
     %Heat Storage Vessel - loss
-    Q_loss_hsv(i) = (T_water(i)-T_amb(i))/R_hsv ;          %Heat loss hsv
-    Q_loss_pur(i) = (T_water(i)-T_amb(i))/R_pur;           %Heat loss polyurethane tubing 
-    Q_loss(i) = Q_loss_hsv(i) + Q_loss_pur(i);           %Sum all of the heat losses per second instance here
-    T_water(i) = T_water(i)-((sum(Q_loss)/(M_water*c_water)));      %Final temperature water [K]
+    %Q_loss_hsv(i) = (T_water(i)-T_amb(i))/R_hsv ;          %Heat loss hsv
+    %Q_loss_pur(i) = (T_water(i)-T_amb(i))/R_pur;           %Heat loss polyurethane tubing 
+    %Q_loss(i) = Q_loss_hsv(i) + Q_loss_pur(i);           %Sum all of the heat losses per second instance here
+    %T_water(i) = T_water(i)-((sum(Q_loss)/(M_water*c_water)));      %Final temperature water [K]
     
+    T_water(i+1) = T_water(i); %brings current water temp over to the next time increment
+    T_al(i+1) = T_al(i);
+    T_cu(i+1) = T_cu(i);
+
     %Plotting steps code
     y(i) = T_water(i); %Inserts current temp into its respective place in y for plotting
     t = t + 1;          % 1 stands for 1 step for time
@@ -221,11 +220,8 @@ for i = 2:t_final
 end
 %% Actual plot
 plot(x,y);
-hold on
-plot(x,Q_loss);
-plot(x,Q_conv_cu);
-hold off
+
 xlim([0, t_final]);
-ylim([0, 500]);
+ylim([200, 500]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
