@@ -11,7 +11,7 @@ T_pur = 293;                %Starting temperature polyurethane in [K]
 T_air = 293;                %Starting temperature internal air in [K]
 T_amb = 293;                %Starting temperature ambient (outside) air in [K]
 t = 1;                      %Time at the start [s]
-t_final=1200;               %Time at end cycle [s]
+t_final=120;               %Time at end cycle [s]
 %% First order variables
 %This section contains the properties and constants of the materials, but also fixed variables of the setup
 %Copper tubing
@@ -167,51 +167,40 @@ T_al = repmat(0, 1,t_final);
 T_water = repmat(0, 1,t_final);
 T_pur = repmat(0, 1,t_final);
 T_0 = repmat(0, 1,t_final);
-T_amb = repmat(T_amb, 1,t_final);
 
 T_0(1) = 293;                  %Starting temperature in [K], assumed for all fluids, gasses and materials
-T_water(1) = 293;              %Starting temperature water in [K]
+T_water(1) = 303;              %Starting temperature water in [K]
 T_al(1) = 293;                 %Starting temperature aluminium in [K]
 T_cu(1) = 293;                 %Starting temperature copper in [K]
 T_pur(1) = 293;                %Starting temperature polyurethane in [K]
 T_air(1) = 293;                %Starting temperature internal air in [K]
-T_amb(1) = 293;                %Starting temperature ambient (outside) air in [K]
+
 
 %% Plotting info
 for i = 1:t_final
-    %Water
-    rho_water = (999.83953 + 16.945176 * (1.00024*T_water(i)) - 7.9870401*10^-3 * (1.00024*T_water(i))^3 - 46.17046*10^-6* (1.00024*T_water(i))^3 +105.56302*10^-9 * (1.00024*T_water(i))^4 - 280.54253*10^-12 * (1.00024*T_water(i))^5)/(1+16.897850*10^-3 * (1.00024*T_water(i)));   %Density water
-    M_water = V_system*rho_water;       %Volume of water inside system. Can produce weird values if the rest doesnt work, likely not cause of issues.
+    %Water Mass
+    %rho_water = (999.83953 + 16.945176 * (1.00024*T_water(i)) - 7.9870401*10^-3 * (1.00024*T_water(i))^3 - 46.17046*10^-6* (1.00024*T_water(i))^3 +105.56302*10^-9 * (1.00024*T_water(i))^4 - 280.54253*10^-12 * (1.00024*T_water(i))^5)/(1+16.897850*10^-3 * (1.00024*T_water(i)));   %Density water
+    M_water = V_system*rho_water_20C;       %Volume of water inside system. Can produce weird values if the rest doesnt work, likely not cause of issues.
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+    %Addition of Heat
+    Qdot_gain(i) = 100*i;   %Fill sum of energy gains here
+    T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %Heat Storage Vessel - loss - This works completely
+    Qdot_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;                           %Heat loss hsv
+    Qdot_loss_pur(i) = (T_water(i)-T_amb)/R_pur;                            %Heat loss polyurethane tubing 
+    Qdot_loss(i) = Qdot_loss_hsv(i) + Qdot_loss_pur(i);                     %Sum all of the heat losses per second instance here
+    T_water(i) = T_water(i)-(Qdot_loss(i)/(M_water*c_water));               %New Temperature of water due to heat loss in a single second, right side is Temp change in said second
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    %%Solar collector
-    Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
-    Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
-    Q_loss_conv_al(i) = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
-    Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al(i)-T_cu(i))/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
-    Q_losscond(i)= Q_loss_cond_al_cu;
     
-    Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
-    Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
-    Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
-    
-    %Temperature al and cu
-    T_al(i)=T_al(i)+(Q_rad_al + 0.01*(-Q_loss_conv_al(i)-Q_loss_cond_al(i)-Q_loss_rad_al(i))) / (M_al*c_al);  %Temperature of the aluminium plate [K]
-    T_cu(i)=T_cu(i)+(Q_rad_cu + 0.01*(-Q_loss_rad_cu(i)-Q_loss_cond_al_cu)) / (M_cu*c_cu);              %Temperature of the copper tube
-    
-    %Temperature water - Copper - adds heat
-    Q_conv_cu(i) = U_cu * A_outer_cu * (T_cu(i) - T_water(i));        %Convection copper-water
-    T_water(i) = T_water(i)+(Q_conv_cu(i)/(M_water*c_water));      %Final temperature water [K]
-    
-    %Heat Storage Vessel - loss
-    %Q_loss_hsv(i) = (T_water(i)-T_amb(i))/R_hsv ;          %Heat loss hsv
-    %Q_loss_pur(i) = (T_water(i)-T_amb(i))/R_pur;           %Heat loss polyurethane tubing 
-    %Q_loss(i) = Q_loss_hsv(i) + Q_loss_pur(i);           %Sum all of the heat losses per second instance here
-    %T_water(i) = T_water(i)-((sum(Q_loss)/(M_water*c_water)));      %Final temperature water [K]
-    
+    %Bringing the values that were determined in this time step to the next one
     T_water(i+1) = T_water(i); %brings current water temp over to the next time increment
     T_al(i+1) = T_al(i);
     T_cu(i+1) = T_cu(i);
-
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Plotting steps code
     y(i) = T_water(i); %Inserts current temp into its respective place in y for plotting
     t = t + 1;          % 1 stands for 1 step for time
