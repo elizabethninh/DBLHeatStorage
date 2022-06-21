@@ -188,13 +188,10 @@ for i = 1:t_final
     Qdot_gain_conv_cu(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i)); 
     T_al(i) = T_al(i)+(Qdot_gain_conv_al(i)/(M_al*c_al));      
     T_cu(i) = T_cu(i)+(Qdot_gain_conv_cu(i)/(M_cu*c_cu));    
-        %By this point no external losses in the collector are accounted for, following section transports away heat energy into the water.
-    
-        
-        
+        %By this point no external losses in the collector are accounted for, following section transports away heat energy into the water.    
     Qdot_gain(i) = h_water*(A_inner_cu)*(T_cu(i)-T_water(i));   %Fill sum of energy gains here [J/s or W]
     T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
-    
+    T_cu(i) = T_cu(i)-(Qdot_gain(i)/(M_cu*c_cu));       
     
     
     %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
