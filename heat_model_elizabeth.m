@@ -67,33 +67,24 @@ ks_spacer_d = 0.01; % Thickness of a single Kingspan spacer layer [m]
 sigma = 5.67*10^-8;     %Stefan Boltzmann constant [W/(m^2 K^4)]
 flowrate = 3/60000;     %Flowrate pump [m^3/s]
 E = 1000;               %Irradiance artificial sun [W/m^2]
-
 %% Second order variables
-
 %Copper tube
 A_outer_cu = 2 * pi * r_outer_cu * length_cu;       %Outer surface area copper tube [m^2]
 A_inner_cu = 2 * pi * r_inner_cu * length_cu;       %Inner surface area copper tube [m^2]
 A_exposed_cu = A_outer_cu/2;
-
 V_cu = pi * r_inner_cu^2 * length_cu;               %Inner volume copper tube [m^3]
 M_cu = V_cu * rho_cu;
-
 %Surface areas and volume PVC tube
 A_outer_pvc = 2 * pi * r_outer_pvc * length_pvc;    %Outer area PVC tube [m^2]
 A_inner_pvc = 2 * pi * r_inner_pvc * length_pvc;    %Inner area PVC tube [m^2]
-
 V_pvc = pi * r_inner_pvc^2 * length_pvc;            %Inner volume PVC tube [m^3]
-
 %Surface areas and volume Polyurethane Tubing
 A_outer_pur = 2 * pi * r_outer_pur * length_pur;    %Outer area Polyurethane Tubing [m^2]
 A_inner_pur = 2 * pi * r_inner_pur * length_pur;    %Inner area Polyurethane Tubing [m^2]
-
 V_pur = pi * r_inner_pur^2 * length_pur;            %Inner volume Polyurethane Tubing [m^3]
-
 %Aluminium plate
 V_al = A_al*0.002;                                  %Volume aluminium plate [m^3]
 M_al = rho_al*V_al;                                 %Mass aluminium plate [kg]
-
 %The following values are lifted from the earlier matlab model and are used to calculate (average) surface area of the Kingspan Insulation.
 hsv_al_width = 0.04017;                                                                % Width of Aluminum Tape reflector section, [m]
 hsv_therma_width_in = (hsv_al_width + (2*(sind(18)*0.010)));                           %'width' of kingspan therma plate on the inside, [m]
@@ -101,21 +92,16 @@ hsv_therma_width_out = (hsv_al_width + (2*(sind(18)*0.010))) + 2*(tand(18)*ks_d)
 hsv_therma_a_in = length_pvc * hsv_therma_width_in;                                    %Area of kingspan therma plate on inside, [m^2]
 hsv_therma_a_out = length_pvc * (hsv_therma_width_out);                                %Area of kingspan therma plate on outside, [m^2]
 hsv_therma_a_avg = (hsv_therma_a_out + hsv_therma_a_in)/2;                             %Surface area in middle of therma plate, [m^2]
-
 %The Heat Storage Vessel is seperated into two parts: one for the parts with overlap of endcaps and one for the part without 
 pvc_ec_inner_length = length_cap_pvc - hsv_pvc_d;                                                       %Inner length of PVC Endcap [m]
 hsv_pvc_a_single = (length_cap_pvc - (pvc_ec_inner_length * 2)) * ((r_inner_pvc+r_outer_pvc)/2) * 2 * pi; %Average PVC Surface Area for Heat Storage Vessel section without overlap [m]
 hsv_pvc_a_double = (pvc_ec_inner_length * 2) * ((pvc_ec_inner_length+r_outer_double_pvc)/2) * 2 * pi;         %Average PVC Surface Area for Heat Storage Vessel sections with overlap [m]
 pvc_ec_a = (r_outer_pvc)^2 * pi;                                                                         %Surface area of a single endcap, [m^2]
-
 % Air Insulation Values
-% The following values, once again lifted from the earlier model, aim at extracting helpfull values for calculation of the resistive properties of air in between the HSV and its insulation.
-% These values are simplified estimations.
 hsv_air_avgdist1 = ((0.010+0.00795)/2)*((length_pvc - (pvc_ec_inner_length * 2))/length_pvc) + ((0.0078+0.00575)/2)*((pvc_ec_inner_length * 2)/length_pvc); %Average distance of the heat reflector to the outer wall of the PVC body [m], USES PRE CALCULATED VALUES.  Accounts for the double layer PVC near the endcap, [m]
-hsv_air_avg_a1 = length_pvc * (hsv_al_width - (2*(sind(18)*0.005)));                                                                                                                %Surface area at the average point between pvc and reflector [m^2], (TODO implement avgdist 1)
-hsv_air_avgdist2 = 0.00905;                                                                                                                                                             %Average distance between reflector and kingspan therma plate [m]
-hsv_air_avg_a2 = length_pvc * (hsv_al_width + (2*(sind(18)*0.005)));                                                                                                                %Surface are at the average point between reflector and kingspan therma [m^2], (TODO implement avgdist 2)
-    
+hsv_air_avg_a1 = length_pvc * (hsv_al_width - (2*(sind(18)*0.005)));       %Surface area at the average point between pvc and reflector [m^2], (TODO implement avgdist 1)
+hsv_air_avgdist2 = 0.00905;                                                %Average distance between reflector and kingspan therma plate [m]
+hsv_air_avg_a2 = length_pvc * (hsv_al_width + (2*(sind(18)*0.005)));       %Surface are at the average point between reflector and kingspan therma [m^2], (TODO implement avgdist 2)
 %Aluminum Reflector Tape Properties
 d_al_t = 0.0001;                            % Thickness of an aluminum reflector segment [m]
 a_al_t = hsv_al_width * length_pvc;         % Area of a single heat reflector element. 10 are present in total [m^2]
@@ -153,7 +139,6 @@ R_y = d_air_endcap/(k_air * pvc_ec_a);                                  %Conduct
 R_x = 1/((1/(h_kingspan*pvc_ec_a)) + (ks_d/(ks_k*pvc_ec_a)));           %Convection from Kingspan Therma into outside atmosphere, and conduction through Kingspan Therma
 R_hsv_endcaps = 1/(1/(R_z + R_y + R_x) + 1/(R_z + R_y + R_x));              %Total Equivalent Thermal resistance of both endcaps
 R_hsv = 1/((1/R_hsv_radial) + (1/R_hsv_endcaps));
-
 %misc thermal resistance 
 R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
 R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
@@ -169,13 +154,15 @@ T_water = repmat(0, 1,t_final);
 T_pur = repmat(0, 1,t_final);
 T_0 = repmat(0, 1,t_final);
 
+%Insertion of starting values (temporary)
 T_0(1) = 293;                  %Starting temperature in [K], assumed for all fluids, gasses and materials
-T_water(1) = 373;              %Starting temperature water in [K]
+T_water(1) = 293;              %Starting temperature water in [K]
 T_al(1) = 293;                 %Starting temperature aluminium in [K]
 T_cu(1) = 293;                 %Starting temperature copper in [K]
 T_pur(1) = 293;                %Starting temperature polyurethane in [K]
 T_air(1) = 293;                %Starting temperature internal air in [K]
 
+A_contact_al_cu = length_cu * 0.002; %The contact patch area between the Aluminum and Copper. Simple lengthxwidth for area.
 
 %% Plotting info
 for i = 1:t_final
@@ -184,11 +171,16 @@ for i = 1:t_final
     M_water = V_system*rho_water_20C;       %Volume of water inside system. Can produce weird values if the rest doesnt work, likely not cause of issues.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     %Addition of Heat, And loss of heat in collector solids and air - Needs improvement
-    Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]   
+    Q_rad_al = E*(A_al-A_exposed_cu)*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]   
     Q_rad_cu = E*length_cu*(r_outer_cu* pi)*epsilon_paint;          %Heat addition radiation on copper tube [W] (only half of tube exposed directly to light)
+    T_al(i) = T_al(i)+(Q_rad_al/(M_al*c_al));                       %Temperature of aluminum as it heats up from radiation [k]
+    T_cu(i) = T_cu(i)+(Q_rad_cu/(M_cu*c_cu));                       %Temperature of aluminum as it heats up from radiation [k]    
+    %Losses to inside of collector space
+    Q_loss_conv_al(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W] 
+    T_al(i) = T_al(i)-(Q_loss_conv_al(i)/(M_al*c_al));                       %Temperature of aluminum as it heats up from radiation [k]   
+    Q_loss_conv_cu(i) = h_air*(A_outer_cu)*(T_cu(i)-T_air(i));
+    T_cu(i) = T_cu(i)-(Q_loss_conv_cu(i)/(M_cu*c_cu)); 
     
-    Qdot_gain(i) = 100*i;   %Fill sum of energy gains here
-    %T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
 
     
     %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
@@ -202,37 +194,51 @@ for i = 1:t_final
     %Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
     
     
+    Qdot_gain(i) = 0.05*i^1.05;   %Fill sum of energy gains here [J/s or W]
+    T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
+ 
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %Liquid - loss - This works completely
+    %Liquid - loss - This works as intended
     Qdot_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;                           %Heat loss hsv
     Qdot_loss_pur(i) = (T_water(i)-T_amb)/R_pur;                            %Heat loss polyurethane tubing 
     Qdot_loss_con(i) = (T_water(i)-T_amb)/R_con;                            %Heat loss of the two 10cm long press-fit coupling tube sections sticking out of HSV
     Qdot_loss(i) = Qdot_loss_hsv(i) + Qdot_loss_pur(i)+Qdot_loss_con(i);    %Sum all of the heat losses per second instance here
     T_water(i) = T_water(i)-(Qdot_loss(i)/(M_water*c_water));               %New Temperature of water due to heat loss in a single second, right side is Temp change in said second
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    
     %Bringing the values that were determined in this time step to the next one
-    T_water(i+1) = T_water(i); %brings current water temp over to the next time increment
+    T_water(i+1) = T_water(i);                                              %brings current water temp over to the next time increment
     T_al(i+1) = T_al(i);
     T_cu(i+1) = T_cu(i);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %Plotting steps code
-    y(i) = T_water(i); %Inserts current temp into its respective place in y for plotting
-    t = t + 1;          % 1 stands for 1 step for time
-    x(i) = i;           % time is on x axis
-    i = i + 1;          % 1 step added for plot
+    %Plotting code
+    y(i) = T_water(i);                                                      %Inserts current temp into its respective place in y for plotting
+    t = t + 1;                                                              %1 stands for 1 step for time
+    x(i) = i;                                                               %time is on x axis
+    i = i + 1;                                                              %1 step added for plot
 end
 %% Actual plot
+%Temperature
+figure(1)
 plot(x,y)
 hold on
-plot(x(1:60:t_final),y(1:60:t_final), 'o')
-for t = 1:60:t_final(x)
-  text(x+0.1,y+0.1,['(',num2str(x),',',num2str(y),')'])
-end
+plot(x(1:60:t_final),y(1:60:t_final), '.', 'Markersize', 5)
 hold off
 xlim([0, t_final]);
-ylim([293, 393]);
+ylim([293, 323]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
+%Plot of Heat Energy Gain per Second
+figure(2)
+plot(x,Qdot_gain)
+xlim([0, t_final]);
+ylim([0, 300]);
+xlabel('Time [s]');
+ylabel('Heat Energy Gain [J/s & W]');
+%Plot of Heat Energy Loss per Second
+figure(3)
+plot(x,Qdot_loss)
+xlim([0, t_final]);
+ylim([0, 300]);
+xlabel('Time [s]');
+ylabel('Heat Energy Loss [J/s & W]');
