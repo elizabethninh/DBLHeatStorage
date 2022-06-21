@@ -12,6 +12,7 @@ T_air = 293;                %Starting temperature internal air in [K]
 T_amb = 293;                %Starting temperature ambient (outside) air in [K]
 t = 1;                      %Time at the start [s]
 t_final=1200;               %Time at end cycle [s]
+
 %% First order variables
 %This section contains the properties and constants of the materials, but also fixed variables of the setup
 %Copper tubing
@@ -42,7 +43,7 @@ length_pur = 6;         %Length polyurethane tube [m]
 epsilon_pur = 0.9;      %Emissivity polyurethane [-]
 k_pur = 0.13;           %Thermal conducitivity polyurethane [W/(m K)]
 %Aluminium plate
-A_al = 1.085;           %Area aluminium plate [m^2]
+A_al = 1.72*0.67;           %Area aluminium plate [m^2]
 epsilon_paint = 0.95;   %Emissivity black acrylic paint [-] 
 rho_al = 2700;          %Density aluminium [kg/m^3]
 d_al = 0.002;           %thickness aluminium plate [m]
@@ -58,7 +59,9 @@ k_air = 0.025;          %Thermal conductivity air [W/m K]
 %General Setup Wood Properties
 k_wood = 0.12;       %Thermal Conductivity of Pinewood [W/m k]                       
 d_wood = 0.054;      %Wood border thcikness [m], simplification, in reality 2 mm air pocket within 
-A_wood = 0.3107;     %Inner Surface Area wood layer [m], slight simplification
+A_wood = 0.3107;     %Inner Surface Area wood layer [m^2], slight simplification
+k_trespa = 0.03;     %Thermal Conductivity of Trespa bottom plate [W/m K]
+d_trespa = 0.006;    %Thickness of trespa bottom [m]
 %Kingspan Insulation Properties
 ks_k = 0.022;     % Thermal Conductivity Kingspan insulation layer[W/(m*k)]
 ks_d = 0.04;      % thickness of Kingspan insulation layer [m]
@@ -67,6 +70,7 @@ ks_spacer_d = 0.01; % Thickness of a single Kingspan spacer layer [m]
 sigma = 5.67*10^-8;     %Stefan Boltzmann constant [W/(m^2 K^4)]
 flowrate = 3/60000;     %Flowrate pump [m^3/s]
 E = 1000;               %Irradiance artificial sun [W/m^2]
+V_body_collector = 1.72*0.67*0.067; %Volume of the solar collector build area with glas plate [m^3]
 %% Second order variables
 %Copper tube
 A_outer_cu = 2 * pi * r_outer_cu * length_cu;       %Outer surface area copper tube [m^2]
@@ -105,7 +109,6 @@ hsv_air_avg_a2 = length_pvc * (hsv_al_width + (2*(sind(18)*0.005)));       %Surf
 %Aluminum Reflector Tape Properties
 d_al_t = 0.0001;                            % Thickness of an aluminum reflector segment [m]
 a_al_t = hsv_al_width * length_pvc;         % Area of a single heat reflector element. 10 are present in total [m^2]
-    
 % Convective heat transfer coefficients
 h_air = 5.0;         %CVTH of still air [W/(m^2 K)], Range (4.0 to 5.9)
 h_water = 100;      %CVTH of water [W/(m^2 K)], Range (100 to 15000), Unused
@@ -125,7 +128,8 @@ U_pur = 120.76;      %OHTC water in polyurethane [W/(m^2 K)]
 U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 %Other
 V_system = V_cu+V_pvc+V_pur;                  %Volume of system  
-
+A_contact_al_cu = length_cu * 0.002; %The contact patch area between the Aluminum and Copper. Simple lengthxwidth for area.
+M_air = V_body_collector*rho_air;   
 %Simplified without radiation
 R_a = 1/((1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc))); %Convection from PVC into first air pocket, And conduction through PVC.
 R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
@@ -145,7 +149,7 @@ R_sol_air = 0.1;                                %Conductive thermal resistance a
 R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance wood setup    
 R_pur = 1/((1/(h_pur*(A_outer_pur))) + (log(r_outer_pur/r_inner_pur)/(2*pi*length_pur*k_pur))); %Thermal resistance of Polyurethane tube. Not accounting for rad
 R_con = 1/((1/(h_cu*(0.2*(r_outer_cu*pi*2)))) + (log(r_outer_cu/r_inner_cu)/(2*pi*0.2*k_cu)))
-
+R_trespa = d_trespa / (k_trespa * (A_al));
 %Empty Arrays
 T_air = repmat(0, 1,t_final);
 T_cu = repmat(0, 1,t_final);
@@ -153,7 +157,6 @@ T_al = repmat(0, 1,t_final);
 T_water = repmat(0, 1,t_final);
 T_pur = repmat(0, 1,t_final);
 T_0 = repmat(0, 1,t_final);
-
 %Insertion of starting values (temporary)
 T_0(1) = 293;                  %Starting temperature in [K], assumed for all fluids, gasses and materials
 T_water(1) = 293;              %Starting temperature water in [K]
@@ -161,10 +164,6 @@ T_al(1) = 293;                 %Starting temperature aluminium in [K]
 T_cu(1) = 293;                 %Starting temperature copper in [K]
 T_pur(1) = 293;                %Starting temperature polyurethane in [K]
 T_air(1) = 293;                %Starting temperature internal air in [K]
-
-A_contact_al_cu = length_cu * 0.002; %The contact patch area between the Aluminum and Copper. Simple lengthxwidth for area.
-V_body_collector = 1.72*0.67*0.067;
-M_air = V_body_collector*rho_air;   
 %% Plotting info
 for i = 1:t_final
     %Water Mass
@@ -187,22 +186,21 @@ for i = 1:t_final
     Qdot_gain_conv_al(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i));     
     Qdot_gain_conv_cu(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i)); 
     T_al(i) = T_al(i)+(Qdot_gain_conv_al(i)/(M_al*c_al));      
-    T_cu(i) = T_cu(i)+(Qdot_gain_conv_cu(i)/(M_cu*c_cu));    
+    T_cu(i) = T_cu(i)+(Qdot_gain_conv_cu(i)/(M_cu*c_cu));  
+    T_air(i) = T_air(i) - ((Qdot_loss_conv_cu(i)+Qdot_loss_conv_cu(i))/(M_cu*c_cu)); 
+    %Conduction from Aluminum to Copper
+    Qdot_cond_al_to_cu(i) = h_cu*(A_contact_al_cu)*(T_al(i)-T_cu(i));
+    T_cu(i) = T_cu(i)+(Qdot_cond_al_to_cu(i)/(M_cu*c_cu));  
+    T_al(i) = T_al(i)-(Qdot_cond_al_to_cu(i)/(M_al*c_al)); 
+    %----------------------------------------------------------------------
         %By this point no external losses in the collector are accounted for, following section transports away heat energy into the water.    
-    Qdot_gain(i) = h_water*(A_inner_cu)*(T_cu(i)-T_water(i));   %Fill sum of energy gains here [J/s or W]
-    T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));             %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
+    Qdot_gain(i) = 1000*(A_inner_cu)*(T_cu(i)-T_water(i));                 %Fill sum of energy gains here [J/s or W]
+    T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));            %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
     T_cu(i) = T_cu(i)-(Qdot_gain(i)/(M_cu*c_cu));       
+        %Aluminum Plate to bottom
+    Qdot_loss_trespa(i) = (T_al(i)-T_amb)/R_trespa;                        %Heat loss through the trespa plate at the bottom
+    T_al(i) = T_al(i)-(Qdot_loss_trespa(i)/(M_al*c_al)); 
     
-    
-    %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
-    %Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
-    %Q_loss_conv_al(i) = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
-    %Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al(i)-T_cu(i))/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
-    %Q_losscond(i)= Q_loss_cond_al_cu;
-    
-    %Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
-    %Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
-    %Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Liquid - loss - This works as intended
     Qdot_loss_hsv(i) = (T_water(i)-T_amb)/R_hsv ;                           %Heat loss hsv
@@ -231,20 +229,30 @@ hold on
 plot(x(1:60:t_final),y(1:60:t_final), '.', 'Markersize', 5)
 hold off
 xlim([0, t_final]);
-ylim([293, 323]);
+ylim([293, 343]);
 xlabel('Time [s]');
 ylabel('Temperature [K]');
 %Plot of Heat Energy Gain per Second
 figure(2)
 plot(x,Qdot_gain)
 xlim([0, t_final]);
-ylim([0, 300]);
+ylim([0, 800]);
 xlabel('Time [s]');
 ylabel('Heat Energy Gain in a second [J/s & W]');
 %Plot of Heat Energy Loss per Second
 figure(3)
 plot(x,Qdot_loss)
 xlim([0, t_final]);
-ylim([0, 300]);
+ylim([0, 800]);
 xlabel('Time [s]');
 ylabel('Heat Energy Loss in a second [J/s & W]');
+
+    %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
+    %Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
+    %Q_loss_conv_al(i) = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
+    %Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al(i)-T_cu(i))/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
+    %Q_losscond(i)= Q_loss_cond_al_cu;
+    
+    %Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
+    %Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
+    %Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
