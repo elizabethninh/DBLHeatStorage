@@ -197,7 +197,7 @@ for i = 1:t_final
     Qdot_gain(i) = 1000*(A_inner_cu)*(T_cu(i)-T_water(i));                 %Fill sum of energy gains here [J/s or W]
     T_water(i) = T_water(i) + (Qdot_gain(i)/(M_water*c_water));            %New Temperature of water due to heat gain in a single second, right side is Temp change in said second
     T_cu(i) = T_cu(i)-(Qdot_gain(i)/(M_cu*c_cu));       
-        %Aluminum Plate to bottom
+        %Aluminum Plate to bottom (assumes perfect contact)
     Qdot_loss_trespa(i) = (T_al(i)-T_amb)/R_trespa;                        %Heat loss through the trespa plate at the bottom
     T_al(i) = T_al(i)-(Qdot_loss_trespa(i)/(M_al*c_al)); 
     
