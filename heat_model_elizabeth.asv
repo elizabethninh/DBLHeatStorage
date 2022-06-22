@@ -130,7 +130,19 @@ U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 V_system = V_cu+V_pvc+V_pur;                  %Volume of system  
 A_contact_al_cu = length_cu * 0.002; %The contact patch area between the Aluminum and Copper. Simple lengthxwidth for area.
 M_air = V_body_collector*rho_air;   
-R_a = 1/((1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc))); %Convection from PVC into first air pocket, And conduction through PVC.
+%Simplified without radiation
+R_a = 1/((1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + ()))+(log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc); %Convection from PVC into first air pocket,radiation into air pocket,And conduction through PVC.
+R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
+R_c = 1/((1/(h_al*(10*a_al_t))) + (d_al_t/k_al*(10*a_al_t))); %Convection from reflector to second air pocket, And conduction through reflector.
+R_d = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2)); %Conduction through second air pocket
+R_e = 1/((1/(h_kingspan*(10*hsv_therma_a_avg))) + (1/(sigma*espi)))))+(ks_d/(ks_k*(10*hsv_therma_a_avg); %Convection from Kingspan Therma to ambient, And conduction through Kingspan Therma.    
+R_hsv_radial = R_a + R_b + R_c + R_d + R_e;
+%Endcap (Assumed single endcap here. Second one will be accounted for in R_hsv_endcaps)
+R_z = 1/((1/(k_pvc*pvc_ec_a)) + (hsv_pvc_d/(k_pvc*pvc_ec_a)));          %Convection from PVC into air gap, and conduction through pvc.
+R_y = d_air_endcap/(k_air * pvc_ec_a);                                  %Conduction through air gap
+R_x = 1/((1/(h_kingspan*pvc_ec_a)) + (ks_d/(ks_k*pvc_ec_a)));           %Convection from Kingspan Therma into outside atmosphere, and conduction through Kingspan Therma
+R_hsv_endcaps = 1/(1/(R_z + R_y + R_x) + 1/(R_z + R_y + R_x));              %Total Equivalent Thermal resistance of both endcaps
+R_hsv = 1/((1/R_hsv_radial) + (1/R_hsv_endcaps));
 %misc thermal resistance 
 R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
 R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
@@ -154,22 +166,6 @@ T_pur(1) = 293;                %Starting temperature polyurethane in [K]
 T_air(1) = 293;                %Starting temperature internal air in [K]
 %% Plotting info
 for i = 1:t_final
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
-    %Thermal resistance can change dynamically because radiation is accounted for in HSV
-    %Simplified without radiation
-    R_a = 1/( (1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + (1/(sigma*(hsv_pvc_a_single+hsv_pvc_a_double)*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb)) )) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc)); %Convection from PVC into first air pocket,radiation into air pocket,And conduction through PVC.
-    R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
-    R_c = 1/((1/(h_al*(10*a_al_t))) + (d_al_t/k_al*(10*a_al_t))); %Convection from reflector to second air pocket, And conduction through reflector.
-    R_d = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2)); %Conduction through second air pocket
-    R_e = 1/((1/(h_kingspan*(10*hsv_therma_a_avg))) + (1/(sigma*hsv_therma_a_avg*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb)))) + (ks_d/(ks_k*(10*hsv_therma_a_avg))); %Convection from Kingspan Therma to ambient, And conduction through Kingspan Therma.    
-    R_hsv_radial = R_a + R_b + R_c + R_d + R_e;
-    %Endcap (Assumed single endcap here. Second one will be accounted for in R_hsv_endcaps)
-    R_z = 1/((1/(k_pvc*pvc_ec_a)) + (hsv_pvc_d/(k_pvc*pvc_ec_a)));          %Convection from PVC into air gap, and conduction through pvc.
-    R_y = d_air_endcap/(k_air * pvc_ec_a);                                  %Conduction through air gap
-    R_x = 1/((1/(h_kingspan*pvc_ec_a)) + (ks_d/(ks_k*pvc_ec_a)));           %Convection from Kingspan Therma into outside atmosphere, and conduction through Kingspan Therma
-    R_hsv_endcaps = 1/(1/(R_z + R_y + R_x) + 1/(R_z + R_y + R_x));              %Total Equivalent Thermal resistance of both endcaps
-    R_hsv = 1/((1/R_hsv_radial) + (1/R_hsv_endcaps));
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
     %Water Mass
     %rho_water = (999.83953 + 16.945176 * (1.00024*T_water(i)) - 7.9870401*10^-3 * (1.00024*T_water(i))^3 - 46.17046*10^-6* (1.00024*T_water(i))^3 +105.56302*10^-9 * (1.00024*T_water(i))^4 - 280.54253*10^-12 * (1.00024*T_water(i))^5)/(1+16.897850*10^-3 * (1.00024*T_water(i)));   %Density water
     M_water = V_system*rho_water_20C;       %Volume of water inside system. Can produce weird values if the rest doesnt work, likely not cause of issues.
