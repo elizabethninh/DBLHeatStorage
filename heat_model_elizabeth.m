@@ -110,8 +110,8 @@ hsv_air_avg_a2 = length_pvc * (hsv_al_width + (2*(sind(18)*0.005)));       %Surf
 d_al_t = 0.0001;                            % Thickness of an aluminum reflector segment [m]
 a_al_t = hsv_al_width * length_pvc;         % Area of a single heat reflector element. 10 are present in total [m^2]
 % Convective heat transfer coefficients
-h_air = 5.0;         %CVTH of still air [W/(m^2 K)], Range (4.0 to 5.9)
-h_water = 1000;      %CVTH of water [W/(m^2 K)], Range (100 to 15000) in pipe
+h_air = 4.0;         %CVTH of still air [W/(m^2 K)], Range (4.0 to 5.9)
+h_water = 100;      %CVTH of water [W/(m^2 K)], Range (100 to 15000) in pipe
 h_pvc = 5;        %CVTH PVC [W/(m^2 K)], Range (5 to 9)
 h_al = 7;        %CVTH aluminium [W/(m^2 K)], Range (7 to 10)
 h_kingspan = 10;   %CTVH of Kingspan-Therma insulation [W/(m^2 K)], Range (10 to 30) (Aluminum surface)
@@ -130,7 +130,6 @@ U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 V_system = V_cu+V_pvc+V_pur;                  %Volume of system  
 A_contact_al_cu = length_cu * 0.002; %The contact patch area between the Aluminum and Copper. Simple lengthxwidth for area.
 M_air = V_body_collector*rho_air;   
-R_a = 1/((1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc))); %Convection from PVC into first air pocket, And conduction through PVC.
 %misc thermal resistance 
 R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
 R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
