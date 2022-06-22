@@ -67,6 +67,7 @@ ks_k = 0.022;     % Thermal Conductivity Kingspan insulation layer[W/(m*k)]
 ks_d = 0.04;      % thickness of Kingspan insulation layer [m]
 ks_spacer_d = 0.01; % Thickness of a single Kingspan spacer layer [m]
 %Other
+length_connector_total = 0.2; %total combined length of the connector segments that stick out of the HSV, [m]
 sigma = 5.67*10^-8;     %Stefan Boltzmann constant [W/(m^2 K^4)]
 flowrate = 3/60000;     %Flowrate pump [m^3/s]
 E = 1000;               %Irradiance artificial sun [W/m^2]
@@ -137,7 +138,7 @@ R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plat
 R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
 R_sol_wood = d_wood/(k_wood * A_wood) ;       %Conductive thermal resistance wood setup    
 R_pur = 1/((1/(h_pur*(A_outer_pur))) + (log(r_outer_pur/r_inner_pur)/(2*pi*length_pur*k_pur))); %Thermal resistance of Polyurethane tube. Not accounting for rad
-R_con = 1/((1/(h_cu*(0.2*(r_outer_cu*pi*2)))) + (log(r_outer_cu/r_inner_cu)/(2*pi*0.2*k_cu)));
+R_con = 1/((1/(h_cu*(0.15*(r_outer_cu*pi*2)))) + (log(r_outer_cu/r_inner_cu)/(2*pi*0.15*k_cu)));
 R_trespa = d_trespa / (k_trespa * (A_al));
 %Empty Arrays
 T_air = repmat(0, 1,t_final);
@@ -161,6 +162,7 @@ for i = 1:t_final
             %use way more temperature measurement points, but this seems like a
             %decent approximation to take the delta T between inside liquid temp
             %and ambient.
+    R_con = 1/((1/(h_cu*(length_connector_total*(r_outer_cu*pi*2)))) +  (1/(1/(sigma*(pi*2*length_connector_total*r_outer_cu)*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb))) ) + (log(r_outer_cu/r_inner_cu)/(2*pi*length_connector_total*k_cu)));
     R_a = 1/( (1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + 1/(1/(sigma*(hsv_pvc_a_single+hsv_pvc_a_double)*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb)) )) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc)); %Convection from PVC into first air pocket,radiation into air pocket,And conduction through PVC.
     R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
     R_c = 1/((1/(h_al*(10*a_al_t))) + (d_al_t/k_al*(10*a_al_t))); %Convection from reflector to second air pocket, And conduction through reflector.
