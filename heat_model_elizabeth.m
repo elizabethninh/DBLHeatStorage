@@ -67,7 +67,7 @@ ks_k = 0.022;     % Thermal Conductivity Kingspan insulation layer[W/(m*k)]
 ks_d = 0.04;      % thickness of Kingspan insulation layer [m]
 ks_spacer_d = 0.01; % Thickness of a single Kingspan spacer layer [m]
 %Other
-length_connector_total = 0.2; %total combined length of the connector segments that stick out of the HSV, [m]
+length_connector_total = 0.15; %total combined length of the connector segments that stick out of the HSV, [m]
 sigma = 5.67*10^-8;     %Stefan Boltzmann constant [W/(m^2 K^4)]
 flowrate = 3/60000;     %Flowrate pump [m^3/s]
 E = 1000;               %Irradiance artificial sun [W/m^2]
