@@ -71,6 +71,7 @@ sigma = 5.67*10^-8;     %Stefan Boltzmann constant [W/(m^2 K^4)]
 flowrate = 3/60000;     %Flowrate pump [m^3/s]
 E = 1000;               %Irradiance artificial sun [W/m^2]
 V_body_collector = 1.72*0.67*0.067; %Volume of the solar collector build area with glas plate [m^3]
+
 %% Second order variables
 %Copper tube
 A_outer_cu = 2 * pi * r_outer_cu * length_cu;       %Outer surface area copper tube [m^2]
@@ -130,6 +131,7 @@ U_pvc = 4.21;       %OHTC water in PVC [W/(m^2 K)]
 V_system = V_cu+V_pvc+V_pur;                  %Volume of system  
 A_contact_al_cu = length_cu * 0.002; %The contact patch area between the Aluminum and Copper. Simple lengthxwidth for area.
 M_air = V_body_collector*rho_air;   
+
 %misc thermal resistance 
 R_al = d_al/(k_al * A_al);                    %Thermal resistance aluminium plate 
 R_sol_air = 0.1;                                %Conductive thermal resistance air, PLACEHOLDER 
@@ -155,12 +157,15 @@ T_air(1) = 293;                %Starting temperature internal air in [K]
 for i = 1:t_final
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
     %Thermal resistance can change dynamically because radiation is accounted for in HSV
-    %Simplified without radiation
-    R_a = 1/( (1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + (1/(sigma*(hsv_pvc_a_single+hsv_pvc_a_double)*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb)) )) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc)); %Convection from PVC into first air pocket,radiation into air pocket,And conduction through PVC.
+            %Accounts for radiation from PVC, and Kingspan Therma Exterior. Ideally
+            %use way more temperature measurement points, but this seems like a
+            %decent approximation to take the delta T between inside liquid temp
+            %and ambient.
+    R_a = 1/( (1/(h_pvc*(hsv_pvc_a_single+hsv_pvc_a_double))) + 1/(1/(sigma*(hsv_pvc_a_single+hsv_pvc_a_double)*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb)) )) + (log(r_outer_pvc/r_inner_pvc)/(2*pi*length_pvc*k_pvc)); %Convection from PVC into first air pocket,radiation into air pocket,And conduction through PVC.
     R_b = hsv_air_avgdist1 / (k_air * (10*hsv_air_avg_a1)); %Conduction through first air pocket
     R_c = 1/((1/(h_al*(10*a_al_t))) + (d_al_t/k_al*(10*a_al_t))); %Convection from reflector to second air pocket, And conduction through reflector.
     R_d = hsv_air_avgdist2 / (k_air * (10*hsv_air_avg_a2)); %Conduction through second air pocket
-    R_e = 1/((1/(h_kingspan*(10*hsv_therma_a_avg))) + (1/(sigma*hsv_therma_a_avg*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb)))) + (ks_d/(ks_k*(10*hsv_therma_a_avg))); %Convection from Kingspan Therma to ambient, And conduction through Kingspan Therma.    
+    R_e = 1/((1/(h_kingspan*(10*hsv_therma_a_avg))) + 1/(1/(sigma*hsv_therma_a_avg*(T_water(i)^2-T_amb^2)*(T_water(i)-T_amb)))) + (ks_d/(ks_k*(10*hsv_therma_a_avg))); %Convection from Kingspan Therma to ambient, And radiation, And conduction through Kingspan Therma.    
     R_hsv_radial = R_a + R_b + R_c + R_d + R_e;
     %Endcap (Assumed single endcap here. Second one will be accounted for in R_hsv_endcaps)
     R_z = 1/((1/(k_pvc*pvc_ec_a)) + (hsv_pvc_d/(k_pvc*pvc_ec_a)));          %Convection from PVC into air gap, and conduction through pvc.
@@ -184,17 +189,18 @@ for i = 1:t_final
     Qdot_loss_conv_cu(i) = h_air*A_outer_cu*(T_cu(i)-T_air(i));
     T_cu(i) = T_cu(i)-(Qdot_loss_conv_cu(i)/(M_cu*c_cu)); 
     %Heating of air inside of collector
-    T_air(i) = T_air(i) + ((Qdot_loss_conv_cu(i)+Qdot_loss_conv_cu(i))/(M_cu*c_cu)); 
+    T_air(i) = T_air(i) + ((Qdot_loss_conv_cu(i)+Qdot_loss_conv_al(i))/(M_air*c_air));      %Heat air from energy dissapated from copper and aluminum
     %Heated air going back into collector Al and Cu by means of convection (This stabilizes the internal temperatures and ensures that the ambient air's heat can eventually make its way into the liq)
     Qdot_gain_conv_al(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i));     
     Qdot_gain_conv_cu(i) = h_air*(A_al-A_exposed_cu)*(T_al(i)-T_air(i)); 
     T_al(i) = T_al(i)+(Qdot_gain_conv_al(i)/(M_al*c_al));      
     T_cu(i) = T_cu(i)+(Qdot_gain_conv_cu(i)/(M_cu*c_cu));  
-    T_air(i) = T_air(i) - ((Qdot_loss_conv_cu(i)+Qdot_loss_conv_cu(i))/(M_cu*c_cu)); 
+    T_air(i) = T_air(i) - ((Qdot_loss_conv_cu(i)+Qdot_loss_conv_al(i))/(M_air*c_air));      %Heat collector from energy dissapated from air
     %Conduction from Aluminum to Copper
     Qdot_cond_al_to_cu(i) = h_cu*A_contact_al_cu*(T_al(i)-T_cu(i));
     T_cu(i) = T_cu(i)+(Qdot_cond_al_to_cu(i)/(M_cu*c_cu));  
     T_al(i) = T_al(i)-(Qdot_cond_al_to_cu(i)/(M_al*c_al)); 
+    %----------------------------------------------------------------------
     %----------------------------------------------------------------------
     %By this point no external losses in the collector are accounted for, following section transports away heat energy into the water.    
     Qdot_gain(i) = h_water*(A_inner_cu)*(T_cu(i)-T_water(i));                 %Fill sum of energy gains here [J/s or W] Needs proper convective heat transfer coeff
@@ -248,13 +254,3 @@ ylabel('Temperature [K]');
 % ylim([0, 800]);
 % xlabel('Time [s]');
 % ylabel('Heat Energy Loss in a second [J/s & W]');
-
-    %Q_rad_cu = E*length_cu*(r_outer_cu*2 * pi)*epsilon_paint;            %Heat addition radiation on copper tube [W]
-    %Q_rad_al = E*A_al*epsilon_paint;                                %Heat addition radiation on aluminium plate [W]
-    %Q_loss_conv_al(i) = h_air*A_al*(T_al(i)-T_air(i));                      %Heat loss convection aluminium plate [W]
-    %Q_loss_cond_al_cu = k_cu* A_exposed_cu*(T_al(i)-T_cu(i))/(r_outer_cu*2-r_inner_cu*2);  %dit klopt niet hlml maar weten A tussen plaat en buis niet %Heat loss conduction aluminium plate [W]
-    %Q_losscond(i)= Q_loss_cond_al_cu;
-    
-    %Q_loss_cond_al(i) = (T_al(i)-T_air(i))/R_al ;                                       %Heat loss convection aluminium plate (other direction)
-    %Q_loss_rad_cu(i) = sigma * epsilon_paint * A_outer_cu* (T_cu(i)^4 - T_air(i)^4);    %Heat loss radiation copper tube [W]
-    %Q_loss_rad_al(i) = sigma * epsilon_paint * A_al * (T_al(i)^4- T_air(i)^4);          %Heat loss radiation aluminium plate [W]
